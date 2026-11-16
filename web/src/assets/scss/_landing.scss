@@ -1,0 +1,791 @@
+// Landing page — public marketing shell for Mwandishi.
+// Everything is namespaced under .lp so it cannot leak into the builder UI.
+
+$lp-radius: 14px;
+$lp-shadow: 0 1px 2px rgba(23, 23, 23, .06), 0 8px 24px rgba(23, 23, 23, .06);
+$lp-shadow-hover: 0 2px 4px rgba(23, 23, 23, .08), 0 16px 40px rgba(23, 23, 23, .12);
+
+.lp {
+  background: var(--bs-body-bg);
+
+  // -- top bar ----------------------------------------------------------
+  &-nav {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    background: var(--bs-body-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+    backdrop-filter: saturate(180%) blur(8px);
+
+    .navbar-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-weight: 700;
+      color: var(--bs-emphasis-color);
+    }
+
+    .nav-link {
+      color: var(--bs-secondary-color);
+      font-weight: 500;
+      border-radius: 8px;
+      padding: .4rem .85rem;
+      transition: color 0.15s ease, background-color 0.15s ease;
+
+      &:hover { color: var(--bs-emphasis-color); background: var(--bs-tertiary-bg); }
+    }
+
+    .lp-lang {
+      font-size: .8rem;
+      font-weight: 600;
+      padding: .3rem .6rem;
+    }
+  }
+
+  // -- hero -------------------------------------------------------------
+  &-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 5rem 0 4.5rem;
+    background:
+      radial-gradient(60rem 30rem at 15% -10%, rgba($primary, .14), transparent 60%),
+      radial-gradient(45rem 26rem at 95% 0%, rgba($cyan, .12), transparent 55%);
+
+    @media (max-width: 767.98px) { padding: 3.25rem 0 3rem; }
+  }
+
+  &-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .8rem;
+    font-weight: 600;
+    color: $primary;
+    background: rgba($primary, .1);
+    border: 1px solid rgba($primary, .22);
+    border-radius: 999px;
+    padding: .3rem .8rem;
+  }
+
+  &-title {
+    font-size: clamp(2rem, 5.2vw, 3.35rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin-bottom: 1rem;
+
+    em {
+      font-style: normal;
+      color: $primary;
+    }
+  }
+
+  &-lead {
+    font-size: 1.1rem;
+    color: var(--bs-secondary-color);
+    max-width: 40rem;
+  }
+
+  // Faux CV card next to the copy — purely decorative, mirrors the builder.
+  &-preview {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: $lp-radius;
+    box-shadow: $lp-shadow;
+    padding: 1.4rem;
+
+    .lp-pv-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      padding-bottom: .8rem;
+      border-bottom: 2px solid $primary;
+    }
+
+    .lp-pv-name { font-weight: 700; line-height: 1.15; }
+    .lp-pv-role { font-size: .78rem; color: var(--bs-secondary-color); }
+    .lp-pv-contact { font-size: .66rem; color: $gray-500; margin-top: .25rem; }
+
+    .lp-pv-sec {
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      color: $primary;
+      margin: .9rem 0 .35rem;
+    }
+
+    .lp-pv-line {
+      height: .38rem;
+      border-radius: 3px;
+      background: var(--bs-tertiary-bg);
+      margin-bottom: .3rem;
+
+      &.w-90 { width: 90%; }
+      &.w-75 { width: 75%; }
+      &.w-60 { width: 60%; }
+    }
+  }
+
+  // -- generic section rhythm -------------------------------------------
+  &-section { padding: 4.5rem 0; }
+  &-section-alt { background: var(--bs-tertiary-bg); }
+
+  &-eyebrow {
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: .5rem;
+  }
+
+  &-h2 {
+    font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: -.015em;
+    margin-bottom: .6rem;
+  }
+
+  &-sub2 {
+    color: var(--bs-secondary-color);
+    max-width: 44rem;
+  }
+
+  // -- stat strip --------------------------------------------------------
+  &-stat {
+    border-left: 2px solid rgba($primary, .35);
+    padding-left: .85rem;
+
+    .v { font-weight: 700; font-size: 1.05rem; line-height: 1.2; }
+    .l { font-size: .82rem; color: var(--bs-secondary-color); }
+  }
+
+  // -- cards -------------------------------------------------------------
+  &-card {
+    height: 100%;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: $lp-radius;
+    padding: 1.5rem;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: $lp-shadow-hover;
+      border-color: rgba($primary, .35);
+    }
+
+    h3 { font-size: 1.02rem; font-weight: 700; margin: .9rem 0 .4rem; }
+    p { font-size: .9rem; color: var(--bs-secondary-color); margin: 0; }
+
+    .ic {
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      border-radius: 11px;
+      color: $primary;
+      background: rgba($primary, .1);
+    }
+  }
+
+  // -- numbered steps ----------------------------------------------------
+  &-step {
+    position: relative;
+    padding-top: .25rem;
+
+    .n {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: .95rem;
+      color: #fff;
+      background: $primary;
+      box-shadow: 0 0 0 6px rgba($primary, .12);
+      margin-bottom: .9rem;
+    }
+
+    h3 { font-size: 1rem; font-weight: 700; margin-bottom: .3rem; }
+    p { font-size: .9rem; color: var(--bs-secondary-color); margin: 0; }
+  }
+
+  // -- template cards ----------------------------------------------------
+  &-tpl {
+    display: block;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: $lp-radius;
+    padding: 1.25rem;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: $lp-shadow-hover;
+      border-color: rgba($primary, .5);
+      color: inherit;
+    }
+
+    h3 { font-size: .98rem; font-weight: 700; margin-bottom: .35rem; }
+    p { font-size: .85rem; color: var(--bs-secondary-color); margin-bottom: .7rem; }
+    .best { font-size: .78rem; color: var(--bs-secondary-color); }
+    .best b { color: var(--bs-emphasis-color); font-weight: 600; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .7rem; }
+    .tag {
+      font-size: .68rem;
+      font-weight: 600;
+      padding: .12rem .45rem;
+      border-radius: 5px;
+      color: $primary;
+      background: rgba($primary, .1);
+    }
+  }
+
+  // -- privacy band ------------------------------------------------------
+  &-band {
+    border-radius: $lp-radius;
+    padding: 2.5rem 2rem;
+    color: #fff;
+    background: linear-gradient(135deg, $brand, $brand-700);
+
+    h2 { font-weight: 700; margin-bottom: .6rem; }
+    p { opacity: .92; margin-bottom: 1.25rem; }
+
+    .tick {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-weight: 600;
+      margin-bottom: .5rem;
+
+      i { font-size: 1.15rem; }
+    }
+  }
+
+  // -- FAQ ---------------------------------------------------------------
+  &-faq {
+    .accordion-item {
+      border: 1px solid var(--bs-border-color);
+      border-radius: $lp-radius !important;
+      margin-bottom: .65rem;
+      overflow: hidden;
+    }
+
+    .accordion-button {
+      font-weight: 600;
+      padding: 1rem 1.15rem;
+      background: var(--bs-body-bg);
+
+      &:not(.collapsed) { color: var(--bs-emphasis-color); background: transparent; box-shadow: none; }
+      &::after { background-size: .8rem; }
+    }
+
+    .accordion-body {
+      color: var(--bs-secondary-color);
+      font-size: .92rem;
+      padding: 0 1.15rem 1.15rem;
+    }
+  }
+
+  // -- final call to action ---------------------------------------------
+  &-cta {
+    text-align: center;
+    padding: 4rem 1rem;
+    border-radius: 18px;
+    background: radial-gradient(40rem 20rem at 50% -30%, rgba($primary, .12), transparent 70%), var(--bs-tertiary-bg);
+
+    h2 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; margin-bottom: .6rem; }
+    p { color: var(--bs-secondary-color); max-width: 34rem; margin: 0 auto 1.5rem; }
+  }
+
+  // -- footer ------------------------------------------------------------
+  &-foot {
+    border-top: 1px solid var(--bs-border-color);
+    padding: 2rem 0;
+    font-size: .88rem;
+    color: var(--bs-secondary-color);
+
+    a { color: var(--bs-secondary-color); text-decoration: none; &:hover { color: $primary; } }
+  }
+}
+
+[data-bs-theme="dark"] {
+  .lp-preview {
+    background: $gray-900;
+    border-color: $gray-800;
+  }
+
+  .lp-card,
+  .lp-tpl,
+  .lp-faq .accordion-item {
+    background: $gray-900;
+    border-color: $gray-800;
+  }
+
+  .lp-nav { background: rgba($gray-900, .92); border-bottom-color: $gray-800; }
+  .lp-section-alt { background: $gray-950; }
+  .lp-title em { color: lighten($primary, 8%); }
+  .lp-band { background: linear-gradient(135deg, $brand-600, $brand-900); }
+}
+
+// -- legal pages (privacy policy, terms of use) -----------------------------
+.legal-body {
+  padding: 2.5rem 0 3.5rem;
+}
+
+.legal-doc {
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.legal-meta {
+  color: $gray-500;
+  font-size: .85rem;
+  margin-bottom: 1.5rem;
+}
+
+.legal-intro {
+  font-size: 1.05rem;
+  margin-bottom: 2rem;
+}
+
+.legal-sec {
+  margin-bottom: 1.75rem;
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: .5rem;
+  }
+
+  p {
+    color: $gray-700;
+    margin-bottom: .5rem;
+  }
+
+  ul {
+    margin: .5rem 0 0;
+    padding-left: 1.15rem;
+  }
+
+  li {
+    color: $gray-700;
+    margin-bottom: .3rem;
+  }
+}
+
+.legal-link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: underline;
+  }
+}
+
+[data-bs-theme="dark"] {
+  .legal-meta { color: $gray-400; }
+  .legal-sec p,
+  .legal-sec li { color: $gray-300; }
+}
+
+// -- pricing page styles ----------------------------------------------------
+.pricing-page {
+  .pricing-hero {
+    padding-top: clamp(2.5rem, 4vw, 3.5rem);
+    padding-bottom: 1.25rem;
+
+    .pricing-title {
+      font-size: clamp(2rem, 3.8vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 0.75rem;
+    }
+
+    .pricing-lead {
+      font-size: 1.05rem;
+      color: var(--bs-secondary-color);
+      max-width: 44rem;
+      line-height: 1.5;
+    }
+  }
+
+  .pricing-cards-section {
+    padding-top: 1.25rem;
+    padding-bottom: 4.5rem;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    max-width: 1080px;
+    margin: 0 auto;
+
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+    }
+  }
+
+  .pricing-card {
+    width: 100%;
+    padding: 1.5rem 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.1) !important;
+    }
+  }
+
+  .pricing-card-free {
+    border: 1px solid var(--bs-border-color);
+  }
+
+  .pricing-card-clinical {
+    border: 2px solid rgba(13, 202, 240, 0.45) !important;
+    box-shadow: 0 8px 24px -6px rgba(13, 202, 240, 0.12) !important;
+
+    &:hover {
+      border-color: var(--bs-info) !important;
+      box-shadow: 0 14px 32px -6px rgba(13, 202, 240, 0.22) !important;
+    }
+  }
+
+  .pricing-card-exact,
+  .pricing-card-pro {
+    border: 2px solid var(--bs-primary) !important;
+    box-shadow: 0 8px 24px -6px rgba(0, 128, 0, 0.14) !important;
+
+    &:hover {
+      box-shadow: 0 16px 36px -6px rgba(0, 128, 0, 0.22) !important;
+    }
+  }
+
+  .pricing-card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--bs-body-color);
+  }
+
+  .pricing-card-desc {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    min-height: 2.5rem;
+  }
+
+  .pricing-amount {
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  .pricing-popular-ribbon {
+    position: absolute;
+    top: -12px;
+    right: 1.25rem;
+    z-index: 2;
+
+    .badge {
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+  }
+
+  .pricing-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+  }
+
+  .pricing-terms {
+    font-size: 0.74rem;
+    color: var(--bs-secondary-color);
+    line-height: 1.35;
+  }
+
+  .pricing-preview-link {
+    font-size: 0.78rem;
+    color: var(--bs-secondary-color);
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: var(--bs-primary);
+    }
+  }
+
+  .pricing-btn {
+    border-radius: 9999px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    padding: 0.65rem 1.25rem !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .pricing-card-divider {
+    margin: 0.75rem 0 0.85rem;
+    border: 0;
+    border-top: 1px solid var(--bs-border-color);
+    opacity: 0.5;
+  }
+
+  .pricing-features-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .pricing-feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      line-height: 1.38;
+
+      i {
+        margin-top: 0.15rem;
+        font-size: 0.95rem;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .pricing-matrix-section {
+    padding-top: 4.5rem;
+    padding-bottom: 5rem;
+
+    .pricing-matrix-header {
+      margin-bottom: 3rem;
+    }
+  }
+
+  .pricing-trust-section {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+
+  .pricing-faq-section {
+    padding-top: 4.5rem;
+    padding-bottom: 5.5rem;
+
+    .pricing-faq-header {
+      margin-bottom: 3rem;
+    }
+  }
+
+  .pricing-cta-section {
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+
+  .pricing-matrix-wrapper {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 1.25rem;
+    overflow-x: auto;
+  }
+
+  .pricing-matrix-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    th, td {
+      padding: 0.75rem 1rem;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--bs-border-color);
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: var(--bs-tertiary-bg);
+      font-weight: 700;
+      font-size: 0.92rem;
+      letter-spacing: 0.02em;
+
+      &:first-child {
+        border-top-left-radius: 1.25rem;
+      }
+      &:last-child {
+        border-top-right-radius: 1.25rem;
+      }
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+      &:first-child {
+        border-bottom-left-radius: 1.25rem;
+      }
+      &:last-child {
+        border-bottom-right-radius: 1.25rem;
+      }
+    }
+
+    .matrix-col-feature {
+      font-weight: 600;
+      color: var(--bs-body-color);
+      min-width: 220px;
+    }
+
+    .matrix-col-val {
+      text-align: center;
+      min-width: 150px;
+      color: var(--bs-secondary-color);
+    }
+
+    .matrix-col-exact {
+      background: rgba($primary, 0.03);
+    }
+  }
+
+  .step-bubble {
+    width: 28px;
+    height: 28px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pricing-trust-bar {
+    border-radius: 1.25rem;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    transition: box-shadow 0.2s ease;
+
+    @media (min-width: 992px) {
+      .border-lg-end {
+        border-right: 1px solid var(--bs-border-color);
+      }
+    }
+  }
+
+  .pricing-faq-item {
+    transition: background-color 0.2s ease;
+
+    .pricing-faq-question {
+      font-weight: 600;
+      color: var(--bs-body-color);
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: var(--bs-primary);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--bs-primary);
+        outline-offset: 4px;
+        border-radius: 4px;
+      }
+    }
+
+    .pricing-faq-answer {
+      line-height: 1.6;
+    }
+  }
+}
+
+[data-bs-theme="dark"] {
+  .pricing-page {
+    .pricing-card,
+    .pricing-trust-bar {
+      background-color: $gray-900 !important;
+      border-color: $gray-800 !important;
+      color: $gray-200;
+    }
+
+    .pricing-card-clinical {
+      border-color: rgba(13, 202, 240, 0.4) !important;
+      box-shadow: 0 10px 28px -8px rgba(13, 202, 240, 0.15) !important;
+    }
+
+    .pricing-card-exact,
+    .pricing-card-pro {
+      border-color: rgba(0, 200, 83, 0.5) !important;
+      box-shadow: 0 12px 36px -8px rgba(0, 200, 83, 0.18) !important;
+    }
+
+    .pricing-matrix-wrapper {
+      background-color: $gray-900 !important;
+      border-color: $gray-800 !important;
+    }
+
+    .pricing-matrix-table {
+      th, td {
+        border-bottom-color: $gray-800 !important;
+      }
+      thead th {
+        background-color: $gray-950 !important;
+        color: $gray-100;
+      }
+      .matrix-col-feature {
+        color: $gray-100;
+      }
+      .matrix-col-val {
+        color: $gray-300;
+      }
+      .matrix-col-exact {
+        background-color: rgba(0, 200, 83, 0.06) !important;
+      }
+    }
+
+    .pricing-badge.bg-body-secondary {
+      background-color: $gray-800 !important;
+      color: $gray-300 !important;
+      border-color: $gray-700 !important;
+    }
+
+    .bg-body-tertiary {
+      background-color: $gray-950 !important;
+    }
+
+    @media (min-width: 992px) {
+      .border-lg-end {
+        border-right-color: $gray-800 !important;
+      }
+    }
+  }
+}
+

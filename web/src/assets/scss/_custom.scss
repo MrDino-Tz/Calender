@@ -1,0 +1,467 @@
+
+.overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,.45);
+	backdrop-filter: blur(1px);
+	display: none;
+	z-index: 1030;
+}
+.overlay.show {
+	display: block;
+}
+.sidebar {
+	width: 240px;
+	background: $white;
+	transition: width .3s, left .3s;
+  border-right: 1px solid $gray-200;
+	height: 100vh;
+	position: fixed;
+	top: 0;
+	left: 0;
+	padding-top: 60px;
+	z-index: 1030;
+	.nav-link {
+		color: $gray-800;
+		padding: 8px 10px;
+		display: flex;
+		align-items: center;
+    font-size: 14px;
+    font-weight: 400;
+		gap: 12px;
+		white-space: nowrap;
+    margin: 1px 12px;
+    border-radius: 8px;
+
+		&:hover {
+			color: $primary;
+      background-color: rgba($primary, 0.095);
+		}
+			&.active {
+			color: $primary;
+      background-color: rgba($primary, 0.095);
+		}
+    .ti {
+      font-size: 18px;
+    }
+	}
+	.nav-text {
+		transition: opacity .2s;
+	}
+	.logo-area {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 60px;
+		width: 100%;
+		background: $white;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding-left: 17px;
+		color: $gray-800;
+    border-bottom: 1px solid $gray-200;
+	}
+}
+.sidebar.collapsed {
+	width: 60px;
+	.nav-link{
+		margin: 0 0px;
+		background-color: transparent;
+		padding: 8px 18px;
+	}
+	.nav-text {
+		display: none;
+	}
+	.logo-text {
+		display: none;
+	}
+}
+.topbar {
+	height: 60px;
+	margin-left: 240px;
+	transition: margin-left .3s ease;
+}
+.topbar.full {
+	margin-left: 60px;
+}
+.content {
+	margin-left: 240px;
+	transition: margin-left .3s ease;
+	// padding: 20px;
+}
+.content.full {
+	margin-left: 60px;
+}
+@media (max-width: 992px) {
+	.sidebar {
+		left: -240px;
+	}
+	.sidebar.mobile-show {
+		left: 0;
+	}
+	.topbar {
+		margin-left: 0 !important;
+		width: 100% !important;
+	}
+	.content {
+		margin-left: 0 !important;
+	}
+}
+
+
+@import "./avatar";
+@import "./button";
+@import "./icon-shape";
+@import "./utilities";
+
+// Mwandishi template previews
+.cv-mock {
+  background: $gray-100;
+  border: 1px solid $gray-200;
+  border-radius: 8px;
+  min-height: 150px;
+}
+.cv-mock-lg { min-height: 220px; }
+.mock-head {
+  height: 14px;
+  border-radius: 4px;
+  background: $primary;
+  opacity: .75;
+  margin-bottom: 8px;
+}
+.mock-line {
+  height: 7px;
+  border-radius: 4px;
+  background: $gray-300;
+  margin-bottom: 6px;
+}
+.mock-side {
+  width: 34px;
+  border-radius: 4px;
+  background: rgba($primary, .25);
+}
+.mock-photo {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba($primary, .35);
+  flex-shrink: 0;
+}
+
+// Mwandishi live CV preview sheet (ATS-clean, single column)
+.cv-sheet {
+  --cv-accent: #008000;
+  --cv-font: 'Poppins', sans-serif;
+  --cv-size: 13px;
+  background: #fff;
+  border: 1px solid $gray-200;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  padding: 32px 30px;
+  font-family: var(--cv-font);
+  font-size: var(--cv-size);
+  line-height: 1.55;
+  color: $gray-800;
+  .cv-name { font-size: 1.7em; font-weight: 700; margin-bottom: 0; color: $gray-900; }
+  .cv-title { font-size: 1em; font-weight: 600; color: var(--cv-accent); margin-bottom: 4px; }
+  .cv-contact { font-size: .9em; color: $gray-500; margin-bottom: 12px; }
+  .cv-sec { font-size: .95em; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: $gray-900; border-bottom: 2px solid var(--cv-accent); padding-bottom: 2px; margin: 14px 0 6px; }
+  .cv-item { margin-bottom: 8px; }
+  // Real table, not a flex row: LibreOffice's DOCX filter ignores
+  // display:flex/table-cell on spans and welds the columns together, so the
+  // dates run into the role ("Nurse2021 - Present"). A borderless table is
+  // laid out identically here and survives the Word round-trip intact.
+  .cv-item-head { width: 100%; border-collapse: collapse; border: 0; font-weight: 600; }
+  .cv-item-head td { border: 0; padding: 0; vertical-align: bottom; }
+  .cv-item-head .cv-h-left { text-align: left; padding-right: 12px; }
+  .cv-dates { font-weight: 400; color: $gray-500; font-size: .9em; white-space: nowrap; text-align: right; }
+  ul.cv-bullets { margin: 2px 0 0; padding-left: 18px; }
+  .skill-chip { display: inline-block; background: $gray-100; border: 1px solid $gray-200; border-radius: 20px; padding: 1px 10px; margin: 0 4px 4px 0; font-size: .9em; }
+}
+.tpl-government { --cv-accent: #00C951; }
+.tpl-government .cv-head { text-align: center; }
+.tpl-government .cv-sec { border-bottom: 3px double var(--cv-accent); }
+.tpl-banking { --cv-accent: #008000; }
+.tpl-graduate .cv-name { color: var(--cv-accent); }
+.tpl-general .cv-sec { border-bottom: none; border-left: 4px solid var(--cv-accent); padding-left: 8px; }
+// Professional Two-Column: teal accent,
+// header spans both columns, sections flow newspaper-style. Best printed
+// or emailed as PDF — use an ATS-clean template for job portals.
+.tpl-clinical { --cv-accent: #244655; }
+.tpl-clinical.cv-sheet { columns: 2; column-gap: 28px; }
+.tpl-clinical .cv-head { column-span: all; border-bottom: 3px solid var(--cv-accent); padding-bottom: 8px; margin-bottom: 4px; }
+.tpl-clinical .cv-name { color: var(--cv-accent); }
+.tpl-clinical .cv-sec { break-inside: avoid; }
+.tpl-clinical .cv-item { break-inside: avoid; }
+// Exact replica: fixed photo rail + main column, two-tone name
+.tpl-exact { --cv-accent: #244655; }
+.tpl-exact .cv-exact-cols { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+.tpl-exact .cv-exact-rail { background: #EFEDEA; border-radius: 6px; padding: 14px 12px; }
+.tpl-exact .cv-exact-photoWrap { text-align: center; margin-bottom: 10px; }
+.tpl-exact .cv-exact-photo { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; }
+.tpl-exact .cv-exact-initials { display: inline-flex; align-items: center; justify-content: center; width: 110px; height: 110px; border-radius: 50%; background: var(--cv-accent); color: #fff; font-size: 34px; font-weight: 700; }
+.tpl-exact .cv-exact-sec { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--cv-accent); margin: 12px 0 6px; }
+.tpl-exact .cv-exact-line { font-size: 12px; margin-bottom: 3px; word-break: break-word; }
+.tpl-exact .cv-exact-name { font-size: 30px; line-height: 1.1; margin-bottom: 2px; }
+.tpl-exact .cv-exact-name .first { color: $gray-900; font-weight: 400; }
+.tpl-exact .cv-exact-name .last { color: var(--cv-accent); font-weight: 700; }
+.tpl-exact .cv-exact-role { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.tpl-exact .cv-item { break-inside: avoid; }
+// Application letter layout (Tanzanian formal-letter flow: Times New Roman
+// 12pt on 1-inch margins, 16pt leading, sender right / recipient left,
+// centred subject, justified body with a 66pt first-line indent, closing right)
+.tpl-letter {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 12pt;
+  line-height: 16pt;
+  color: #000;
+  padding: 1in;
+}
+.tpl-letter .lt-block { margin: 0 0 10pt; }
+.tpl-letter .lt-right { text-align: right; }
+.tpl-letter .lt-left { text-align: left; }
+.tpl-letter .lt-center { text-align: center; }
+.tpl-letter .lt-sender { line-height: 30.7pt; margin-bottom: 15pt; }
+.tpl-letter .lt-salute { text-indent: 24pt; }
+.tpl-letter .lt-subject { text-align: center; margin-bottom: 12pt; }
+.tpl-letter .lt-para { margin: 0 0 10pt; text-align: justify; text-indent: 66pt; }
+.tpl-letter .lt-to > div, .tpl-letter .lt-close > div { line-height: 16pt; }
+.tpl-letter .lt-to > div:not(:last-child), .tpl-letter .lt-close > div:not(:last-child) { margin-bottom: 10pt; }
+.tpl-letter .lt-close { margin-top: 12pt; }
+.tpl-letter .lt-contact { margin-top: 6pt; }
+.theme-swatch { border: 2px solid transparent; }
+.theme-swatch.active { outline: 2px solid $primary; outline-offset: 2px; }
+
+// Mwandishi AI chat interface (Claude-style surface, no card)
+.chat-log { background: transparent; }
+.chat-avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba($primary, .12); color: $primary; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+.bubble-bot { background: transparent; border: none; padding: 2px; max-width: 92%; font-size: .9rem; }
+.bubble-bot ol { margin: 6px 0 6px 20px; padding: 0; }
+.bubble-bot li { margin-bottom: 3px; }
+.bubble-user { background: $primary; color: #fff; border-radius: 12px 12px 4px 12px; padding: 8px 14px; max-width: 85%; font-size: .9rem; }
+.chat-inputbar { position: sticky; bottom: 0; }
+
+// AI demo layout: preview column sheet stays readable at any width
+
+// Mwandishi dark theme: adapt template chrome (Bootstrap handles the rest).
+// The CV paper preview intentionally stays light in both modes.
+[data-bs-theme="dark"] {
+  .sidebar { background: $gray-900; border-color: $gray-800; }
+  .sidebar .nav-link { color: $gray-200; }
+  .topbar { background: $gray-900 !important; }
+  .topbar .btn-light {
+    background: $gray-800 !important;
+    border-color: $gray-800 !important;
+    color: $gray-100 !important;
+  }
+  .topbar .btn-light:hover, .topbar .btn-light:focus, .topbar .btn-light:active {
+    background: $gray-700 !important;
+    border-color: $gray-700 !important;
+    color: #fff !important;
+  }
+  .logo-area { background: $gray-900 !important; border-color: $gray-800 !important; color: #fff; }
+  .card-header.bg-white { background: $gray-900 !important; }
+  .cv-mock { background: $gray-800; border-color: $gray-700; }
+  .cv-frame { background: transparent; border-color: $gray-700; }
+  .mock-line { background: $gray-600; }
+  .mock-side, .mock-photo { background: rgba($primary, .4); }
+  .cv-sheet { background: #fff; }
+  .chat-log { background: transparent; }
+  // Live preview paper follows the theme
+  [data-bs-theme="dark"] .cv-sheet {
+    background: $gray-900;
+    color: $gray-200;
+    border-color: $gray-700;
+  }
+  [data-bs-theme="dark"] .cv-sheet .cv-name { color: #fff; }
+  [data-bs-theme="dark"] .cv-sheet .cv-sec { color: #fff; }
+  [data-bs-theme="dark"] .cv-sheet .cv-contact,
+  [data-bs-theme="dark"] .cv-sheet .cv-dates { color: $gray-400; }
+  [data-bs-theme="dark"] .cv-sheet .skill-chip { background: $gray-800; border-color: $gray-700; }
+  [data-bs-theme="dark"] .tpl-banking .cv-head { background: #000; }
+}
+
+// Mwandishi gallery: scaled real-template preview + coming-soon cards
+.cv-frame {
+  height: 360px;
+  overflow: hidden;
+  border: 1px solid $gray-200;
+  border-radius: 8px;
+  background: #fff;
+}
+.cv-zoom { zoom: .55; border: none; box-shadow: none; border-radius: 0; }
+.cv-frame-sm { height: 300px; }
+.tpl-soon { opacity: .8; }
+.tpl-banking .cv-head { background: $gray-900; color: #fff; border-radius: 6px; padding: 12px 14px; margin: -8px -6px 10px; }
+.tpl-banking .cv-head .cv-name { color: #fff; }
+.tpl-banking .cv-head .cv-contact { color: $gray-300; }
+.tpl-banking .cv-title { color: $yellow; }
+.tpl-graduate .cv-name { color: $primary; }
+
+@media print {
+  @page { size: A4; margin: 10mm; }
+  #sidebar, #topbar, #aiCol, #builderCol, footer, .no-print { display: none !important; }
+  .content { margin-left: 0 !important; padding: 0 !important; }
+  #cvCol { display: block !important; flex: 0 0 100% !important; max-width: 100% !important; width: 100% !important; }
+  .cv-sheet {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  // Paper always prints light, even in dark mode
+  .cv-sheet, [data-bs-theme="dark"] .cv-sheet {
+    background: #fff !important;
+    color: $gray-800 !important;
+    border: none !important;
+  }
+  [data-bs-theme="dark"] .cv-sheet .cv-name,
+  [data-bs-theme="dark"] .cv-sheet .cv-sec { color: $gray-900 !important; }
+  [data-bs-theme="dark"] .cv-sheet .cv-contact,
+  [data-bs-theme="dark"] .cv-sheet .cv-dates { color: $gray-500 !important; }
+  [data-bs-theme="dark"] .cv-sheet .skill-chip { background: $gray-100 !important; border-color: $gray-200 !important; }
+}
+
+// ---- job-advert image dropzone (cover letters AI dialog) ----
+.dropzone {
+  border: 1.5px dashed $gray-300;
+  border-radius: 8px;
+  padding: .75rem;
+  text-align: center;
+  cursor: pointer;
+  background: $gray-50;
+  transition: border-color .15s ease-in-out, background-color .15s ease-in-out;
+
+  .dropzone-icon { font-size: 1.4rem; color: $gray-400; display: block; margin-bottom: .15rem; }
+  small { font-size: $font-xs; }
+
+  &:hover, &:focus-visible { border-color: $primary; background: rgba($primary, .04); outline: none; }
+  &.is-over { border-color: $primary; background: rgba($primary, .1); }
+  &.is-over .dropzone-icon { color: $primary; }
+}
+
+.shot-grid { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.shot {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid $border-color;
+  background: $gray-100;
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .shot-x {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 50%;
+    background: rgba($gray-900, .65);
+    color: #fff;
+    font-size: .7rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover { background: $danger; }
+  }
+}
+
+// ---- AI status text (cover letters dialog) ----
+// Port of kokonutui's AI Text Loading: gradient shimmer + crossfade, in CSS.
+.ai-load {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem .5rem;
+  min-height: 3.5rem;
+  align-items: center;
+}
+
+.ai-load-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: .5rem 1rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+.ai-load-text {
+  display: inline-block;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 1.15rem;
+  background-image: linear-gradient(100deg, $gray-900 20%, $gray-400 42%, $gray-900 64%);
+  background-size: 200% 100%;
+  background-position: 200% center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation:
+    ai-load-shimmer 2.5s linear infinite,
+    ai-load-in .3s ease-out both;
+}
+
+// AI accuracy note, sits under the chat input box.
+.ai-disclaimer {
+  color: $gray-600;
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.ai-disclaimer .ti {
+  font-size: .9rem;
+  vertical-align: -1px;
+}
+
+// compact variant for the CV builder chat bubble (kokonutui block is sized for a modal)
+.ai-load-compact {
+  padding: 0;
+  min-height: 0;
+}
+
+.ai-load-compact .ai-load-track {
+  padding: 0;
+  text-align: left;
+}
+
+.ai-load-compact .ai-load-text {
+  font-size: .95rem;
+}
+
+@keyframes ai-load-shimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+@keyframes ai-load-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-load-text {
+    animation: none;
+    background-image: none;
+    -webkit-text-fill-color: $gray-900;
+    color: $gray-900;
+  }
+}
+
+// ---- centre the live letter preview within its column ----
+#cvCol .cv-sheet {
+  margin-left: auto;
+  margin-right: auto;
+}
+

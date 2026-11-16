@@ -1,0 +1,42 @@
+{
+  "name": "mwandishi-ai-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mwandishi AI — ATS-friendly CV and cover letter builder for Tanzanian employers, in English and Kiswahili.",
+  "homepage": "https://mwandishi.dtcwonders.online/",
+  "keywords": [
+    "cv-builder",
+    "cover-letter",
+    "ats",
+    "ats-friendly",
+    "kiswahili",
+    "tanzania",
+    "mwandishi-ai"
+  ],
+  "author": "DTC Wonders",
+  "license": "ISC",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "bash deploy.sh",
+    "test": "node tests/smoke.mjs"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@popperjs/core": "^2.11.8",
+    "@tabler/icons": "^3.35.0",
+    "@tabler/icons-webfont": "^3.35.0",
+    "bootstrap": "^5.3.8",
+    "gsap": "^3.15.0",
+    "lottie-web": "^5.13.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4",
+    "sass": "1.77.6",
+    "vite": "^6.4.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0"
+  }
+}
