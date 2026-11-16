@@ -101,33 +101,6 @@ function layoutTimedEvents(events) {
   return layout;
 }
 
-function makeSeedEvents() {
-  const today = startOfDay(new Date());
-  const day = (offset) => addDays(today, offset);
-  const ev = (id, title, startDay, sh, sm, eh, em, calendarId, extra = {}) => ({
-    id,
-    title,
-    calendarId,
-    start: atTime(startDay, sh, sm),
-    end: atTime(startDay, eh, em),
-    ...extra,
-  });
-
-  return [
-    ev('e1', 'Team stand-up', day(0), 9, 0, 9, 30, 'work', { location: 'Google Meet' }),
-    ev('e2', 'Design review', day(0), 11, 0, 12, 0, 'work'),
-    ev('e12', 'Product sync', day(0), 11, 30, 12, 30, 'personal'),
-    ev('e3', '1:1 with Amina', day(0), 14, 0, 14, 45, 'personal'),
-    ev('e4', 'Client call', day(1), 10, 0, 11, 0, 'work', { location: 'Zoom' }),
-    ev('e5', 'Lunch with team', day(1), 13, 0, 14, 0, 'personal'),
-    ev('e6', 'Gym', day(2), 17, 0, 18, 0, 'personal'),
-    { id: 'e7', title: 'Public holiday', calendarId: 'holidays', allDay: true, start: day(3), end: addDays(day(3), 1) },
-    ev('e8', 'Sprint planning', day(4), 9, 30, 11, 0, 'work'),
-    ev('e9', 'Family lunch', day(5), 12, 0, 13, 30, 'family'),
-    ev('e10', 'Project retro', day(-2), 15, 0, 16, 0, 'work'),
-    ev('e11', 'Dentist', day(-5), 10, 0, 11, 0, 'personal'),
-  ];
-}
 
 // ---- mini month -----------------------------------------------------------
 function MiniMonth({ cursor, onSelect, onChangeMonth }) {
@@ -382,7 +355,7 @@ export default function Calendar() {
   const [cursor, setCursor] = React.useState(() => new Date());
   const [sidebarOpen, setSidebarOpen] = React.useState(() => (typeof window === 'undefined' ? true : window.innerWidth > 991));
   const [calendars, setCalendars] = React.useState(DEFAULT_CALENDARS);
-  const [events, setEvents] = React.useState(makeSeedEvents);
+  const [events, setEvents] = React.useState([]);
   const [draft, setDraft] = React.useState(null);
   const [selected, setSelected] = React.useState(null);
   const [now, setNow] = React.useState(() => new Date());

@@ -21,10 +21,10 @@ export default function App() {
     <ThemeProvider>
       <LangProvider>
         <Routes>
-          {/* Calendar shell — Google Calendar-style arrangement. */}
+          {/* Calendar shell — Google Calendar-style arrangement. Root is the main entrance. */}
           <Route path="/calendar" element={<Calendar />} />
-          {/* Root redirects to calendar. */}
-          <Route path="/" element={<Navigate to="/calendar" replace />} />
+          {/* Root — main entrance, renders the calendar. */}
+          <Route path="/" element={<Calendar />} />
           {/* Remaining app routes. */}
           <Route path="/account" element={<Account />} />
           <Route path="/templates" element={<Templates />} />
