@@ -49,7 +49,7 @@ export default function Layout() {
                   <span>·</span>
                   <Link to="/terms" className="text-secondary text-decoration-none">{t('lp.fTerms')}</Link>
                 </div>
-                <p className="mb-0 small">Copyright © 2026 Mwandishi. {t('lp.fTag')} </p>
+                <p className="mb-0 small">Copyright © 2026. {t('lp.fTag')} </p>
               </footer>
             </div>
           </div>

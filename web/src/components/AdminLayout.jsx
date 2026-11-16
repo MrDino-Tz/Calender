@@ -30,7 +30,7 @@ export default function AdminLayout() {
           <div className="row">
             <div className="col-12">
               <footer className="text-center py-1 mt-0 text-secondary">
-                <p className="mb-0">Copyright © 2026 Mwandishi. {t('lp.fTag')} </p>
+                <p className="mb-0">Copyright © 2026. {t('lp.fTag')} </p>
               </footer>
             </div>
           </div>

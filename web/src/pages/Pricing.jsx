@@ -63,7 +63,6 @@ export default function Pricing() {
         <div className="container-fluid px-3 px-sm-4 px-xl-5">
           <div className="d-flex align-items-center justify-content-between gap-3">
             <Link to="/" className="navbar-brand">
-              <img src={logoUrl} alt="Mwandishi AI" width="28" height="28" />
               <span>{t('lp.fTitle')}</span>
             </Link>
 
@@ -597,7 +596,6 @@ export default function Pricing() {
           <div className="row align-items-center g-3">
             <div className="col-12 col-md-6">
               <div className="d-flex align-items-center gap-2">
-                <img src={logoUrl} alt="" width="22" height="22" />
                 <strong>{t('lp.fTitle')}</strong>
                 <span className="d-none d-sm-inline">· {t('lp.fTag')}</span>
               </div>

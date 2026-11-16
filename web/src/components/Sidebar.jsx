@@ -22,8 +22,8 @@ export default function Sidebar({ collapsed, mobileShow, onNavigate, onOpenSoon,
       <aside id="sidebar" className={`sidebar${collapsed ? ' collapsed' : ''}${mobileShow ? ' mobile-show' : ''}`}>
         <div className="logo-area">
           <NavLink to="/dashboard" className="d-inline-flex" onClick={onNavigate}>
-            <img src={logoUrl} alt="" width="24" />
-            <span className="logo-text ms-2 fw-bold text-primary">Mwandishi</span>
+            <i className="ti ti-calendar"></i>
+            <span className="logo-text ms-2 fw-bold text-primary">Calendar</span>
           </NavLink>
         </div>
         <ul className="nav flex-column">
@@ -42,14 +42,7 @@ export default function Sidebar({ collapsed, mobileShow, onNavigate, onOpenSoon,
   }
   return (
     <aside id="sidebar" className={`sidebar${collapsed ? ' collapsed' : ''}${mobileShow ? ' mobile-show' : ''}`}>
-      <div className="logo-area">
-        <NavLink to="/dashboard" className="d-inline-flex" onClick={onNavigate}>
-          <img src={logoUrl} alt="" width="24" />
-          <span className="logo-text ms-2 fw-bold text-primary">Mwandishi</span>
-        </NavLink>
-      </div>
       <ul className="nav flex-column">
-        <li className="px-4 py-2"><small className="nav-text">Mwandishi</small></li>
         <li>
           <NavLink to="/calendar" onClick={onNavigate} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             <i className="ti ti-calendar"></i>
