@@ -187,7 +187,7 @@ function makeSeedEvents() {
 
 
 // ---- mini month -----------------------------------------------------------
-function MiniMonth({ cursor, onSelect, onChangeMonth }) {
+function MiniMonth({ cursor, onSelect, onChangeMonth, eventsForDay, calFor }) {
   const days = React.useMemo(() => monthDays(cursor), [cursor]);
   const today = new Date();
   return (
@@ -203,16 +203,38 @@ function MiniMonth({ cursor, onSelect, onChangeMonth }) {
         {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i}>{d}</span>)}
       </div>
       <div className="cal-mini-grid">
-        {days.map((day) => (
-          <button
-            key={day.toISOString()}
-            type="button"
-            className={`${day.getMonth() !== cursor.getMonth() ? 'other' : ''}${sameDay(day, today) ? ' today' : ''}${sameDay(day, cursor) && !sameDay(day, today) ? ' selected' : ''}`.trim()}
-            onClick={() => onSelect(day)}
-          >
-            {day.getDate()}
-          </button>
-        ))}
+        {days.map((day) => {
+          const list = eventsForDay ? eventsForDay(day) : [];
+          const colors = [];
+          for (const ev of list) {
+            const cal = calFor ? calFor(ev.calendarId) : null;
+            if (cal?.color && !colors.includes(cal.color)) {
+              colors.push(cal.color);
+            }
+            if (colors.length >= 3) break;
+          }
+          const isToday = sameDay(day, today);
+          const isSelected = sameDay(day, cursor) && !isToday;
+          return (
+            <button
+              key={day.toISOString()}
+              type="button"
+              className={`${day.getMonth() !== cursor.getMonth() ? 'other' : ''}${isToday ? ' today' : ''}${isSelected ? ' selected' : ''}`.trim()}
+              onClick={() => onSelect(day)}
+            >
+              <span className="cal-mini-num">{day.getDate()}</span>
+              <span className="cal-mini-dots">
+                {colors.map((c, idx) => (
+                  <span
+                    key={idx}
+                    className="cal-mini-dot"
+                    style={{ background: isToday ? '#ffffff' : c }}
+                  />
+                ))}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -446,6 +468,62 @@ export default function Calendar() {
   const [addCalOpen, setAddCalOpen] = React.useState(false);
   const [newCalName, setNewCalName] = React.useState('');
   const [newCalColor, setNewCalColor] = React.useState('#1A73E8');
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [profileOpen, setProfileOpen] = React.useState(false);
+  const [displayName, setDisplayName] = React.useState(() => {
+    try { return localStorage.getItem('cal.displayName') || 'Anonymous'; } catch (e) { return 'Anonymous'; }
+  });
+  const [calLanguage, setCalLanguage] = React.useState(() => {
+    try { return localStorage.getItem('cal.lang') || 'EN'; } catch (e) { return 'EN'; }
+  });
+  const [timeFormat, setTimeFormat] = React.useState(() => {
+    try { return localStorage.getItem('cal.timeFormat') || '12h'; } catch (e) { return '12h'; }
+  });
+
+  const saveDisplayName = (val) => {
+    setDisplayName(val);
+    try { localStorage.setItem('cal.displayName', val); } catch (e) { /* ignore */ }
+  };
+
+  const saveCalLanguage = (val) => {
+    setCalLanguage(val);
+    try { localStorage.setItem('cal.lang', val); } catch (e) { /* ignore */ }
+  };
+
+  const saveTimeFormat = (val) => {
+    setTimeFormat(val);
+    try { localStorage.setItem('cal.timeFormat', val); } catch (e) { /* ignore */ }
+  };
+
+  const exportCalendarData = () => {
+    const data = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      user: { name: displayName, mode: 'guest' },
+      calendars,
+      events,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `calendar-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const clearAllEvents = () => {
+    if (window.confirm('Are you sure you want to clear all custom events? (Tanzania holidays will remain).')) {
+      const today = new Date();
+      const tzEvents = [
+        ...getTanzaniaHolidays(today.getFullYear() - 1),
+        ...getTanzaniaHolidays(today.getFullYear()),
+        ...getTanzaniaHolidays(today.getFullYear() + 1),
+      ];
+      setEvents(tzEvents);
+      setSettingsOpen(false);
+    }
+  };
 
   const myCalendars = calendars.filter((c) => c.group !== 'other');
   const otherCalendars = calendars.filter((c) => c.group === 'other');
@@ -644,8 +722,22 @@ export default function Calendar() {
             <i className={`ti ${theme === 'dark' ? 'ti-sun' : 'ti-moon'}`}></i>
           </button>
           <button type="button" className="cal-icon-btn" title="Search"><i className="ti ti-search"></i></button>
-          <button type="button" className="cal-icon-btn" title="Settings"><i className="ti ti-settings"></i></button>
-          <button type="button" className="cal-avatar" title="Account">M</button>
+          <button type="button" className="cal-icon-btn" title="Settings" onClick={() => setSettingsOpen(true)}>
+            <i className="ti ti-settings"></i>
+          </button>
+          <button
+            type="button"
+            className="cal-profile-btn"
+            title="Profile (Anonymous)"
+            onClick={() => setProfileOpen(true)}
+          >
+            <span className="cal-avatar">
+              <i className="ti ti-user" style={{ fontSize: 14 }}></i>
+            </span>
+            <span className="d-none d-sm-inline fw-semibold text-truncate" style={{ maxWidth: 100 }}>
+              {displayName || 'Anonymous'}
+            </span>
+          </button>
         </div>
       </header>
 
@@ -680,6 +772,8 @@ export default function Calendar() {
             cursor={cursor}
             onSelect={(d) => setCursor(d)}
             onChangeMonth={(dir) => setCursor((c) => addMonths(c, dir))}
+            eventsForDay={eventsForDay}
+            calFor={calFor}
           />
 
           <div className="cal-side-section">
@@ -1001,6 +1095,129 @@ export default function Calendar() {
             >
               <i className="ti ti-plus me-1"></i>Create calendar
             </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        title="Settings"
+        footer={(
+          <button type="button" className="btn btn-primary" onClick={() => setSettingsOpen(false)}>Done</button>
+        )}
+      >
+        <div className="text-start">
+          <div className="mb-3">
+            <label className="form-label fw-semibold" htmlFor="cal-set-lang">Language / Lugha</label>
+            <select
+              id="cal-set-lang"
+              className="form-select"
+              value={calLanguage}
+              onChange={(e) => saveCalLanguage(e.target.value)}
+            >
+              <option value="EN">English (US)</option>
+              <option value="SW">Kiswahili (Tanzania)</option>
+            </select>
+            <div className="form-text">Choose your preferred UI language.</div>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-semibold" htmlFor="cal-set-time">Time Format</label>
+            <select
+              id="cal-set-time"
+              className="form-select"
+              value={timeFormat}
+              onChange={(e) => saveTimeFormat(e.target.value)}
+            >
+              <option value="12h">12-hour (1:00 PM)</option>
+              <option value="24h">24-hour (13:00)</option>
+            </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Appearance</label>
+            <div className="d-flex align-items-center justify-content-between p-2 border rounded" style={{ background: 'var(--cal-surface-2)' }}>
+              <span>Theme: <strong>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</strong></span>
+              <button type="button" className="btn btn-sm btn-outline-secondary" onClick={toggleTheme}>
+                <i className={`ti ${theme === 'dark' ? 'ti-sun' : 'ti-moon'} me-1`}></i>
+                Switch to {theme === 'dark' ? 'Light' : 'Dark'}
+              </button>
+            </div>
+          </div>
+
+          <hr />
+
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Data & Storage</label>
+            <div className="small text-secondary mb-2">
+              <i className="ti ti-shield-check me-1 text-success"></i>
+              Guest Mode: All events and calendars are saved locally in this browser.
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <button type="button" className="btn btn-outline-primary btn-sm" onClick={exportCalendarData}>
+                <i className="ti ti-download me-1"></i>Export Calendar (.json)
+              </button>
+              <button type="button" className="btn btn-outline-danger btn-sm" onClick={clearAllEvents}>
+                <i className="ti ti-trash me-1"></i>Clear Events
+              </button>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        title="Profile"
+        footer={(
+          <button type="button" className="btn btn-light" onClick={() => setProfileOpen(false)}>Close</button>
+        )}
+      >
+        <div className="text-start">
+          <div className="d-flex align-items-center gap-3 mb-3 p-3 border rounded" style={{ background: 'var(--cal-surface-2)' }}>
+            <div className="cal-avatar" style={{ width: 44, height: 44, fontSize: '1.25rem' }}>
+              <i className="ti ti-user"></i>
+            </div>
+            <div>
+              <div className="fw-bold">{displayName || 'Anonymous Guest'}</div>
+              <div className="d-flex align-items-center gap-1 mt-1">
+                <span className="badge bg-secondary-subtle text-secondary border">Unregistered (Guest Mode)</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="alert alert-info py-2 px-3 small d-flex align-items-center gap-2 mb-3">
+            <i className="ti ti-info-circle fs-5 flex-shrink-0"></i>
+            <span>You have not registered an account yet. All calendar events and notes are saved directly in your browser without requiring a login.</span>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-semibold" htmlFor="cal-display-name">Display Name</label>
+            <input
+              id="cal-display-name"
+              className="form-control"
+              value={displayName}
+              onChange={(e) => saveDisplayName(e.target.value)}
+              placeholder="Anonymous"
+            />
+            <div className="form-text">Name shown on your local calendar header.</div>
+          </div>
+
+          <hr />
+
+          <h6 className="fw-semibold mb-2">Upgrade & Sync (Optional)</h6>
+          <p className="small text-secondary mb-3">
+            Want to access your calendar on other devices or link Google / Microsoft accounts?
+          </p>
+
+          <div className="d-flex gap-2">
+            <NavLink to="/signin" className="btn btn-primary btn-sm flex-fill text-center">
+              <i className="ti ti-login me-1"></i>Sign In
+            </NavLink>
+            <NavLink to="/signup" className="btn btn-outline-secondary btn-sm flex-fill text-center">
+              <i className="ti ti-user-plus me-1"></i>Create Account
+            </NavLink>
           </div>
         </div>
       </Modal>

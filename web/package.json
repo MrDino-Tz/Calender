@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Calendar web app with Google Calendar-style arrangement using React, Bootstrap 5, and Tabler icons.",
-  "homepage": "https://calendar.dtcwonders.online",
+  "homepage": "https://calendar.dtcwonders.online/",
   "keywords": [
     "calendar",
     "google-calendar",
