@@ -1,0 +1,16 @@
+# Vhost configuration files
+vhost/
+*.conf
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production build outputs
+dist/
+web/dist/
+
+# Logs & temp
+*.log
+.DS_Store
+*.local
