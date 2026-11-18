@@ -15,7 +15,7 @@ export default function Account() {
   const navigate = useNavigate();
   const [form, setForm] = React.useState(() => {
     let u = {};
-    try { u = JSON.parse(localStorage.getItem('mrcv.user')) || {}; } catch (e) { /* ignore */ }
+    try { u = JSON.parse(localStorage.getItem('cal.user') || localStorage.getItem('mrcv.user')) || {}; } catch (e) { /* ignore */ }
     return { name: u.name || '', phone: u.phone || '', email: u.email || '', lang: u.lang || 'EN', country: u.country || 'TZ', region: u.region || '', photo: u.photo || '' };
   });
   const [savedTick, setSavedTick] = React.useState(false);
@@ -26,7 +26,10 @@ export default function Account() {
 
   const persist = (next) => {
     try { saveUser(next); } catch (e) { /* ignore */ }
-    try { window.dispatchEvent(new Event('mrcv:user-changed')); } catch (e) { /* ignore */ }
+    try {
+      window.dispatchEvent(new Event('cal:user-changed'));
+      window.dispatchEvent(new Event('mrcv:user-changed'));
+    } catch (e) { /* ignore */ }
     setSavedTick(true);
     setTimeout(() => setSavedTick(false), 2000);
   };
@@ -61,9 +64,12 @@ export default function Account() {
   };
   const wipe = () => {
     if (!window.confirm(t('acc.wipeConfirm'))) return;
-    try { localStorage.removeItem('mrcv.v1'); } catch (e) { /* ignore */ }
+    try { localStorage.removeItem('cal.v1'); localStorage.removeItem('mrcv.v1'); } catch (e) { /* ignore */ }
     try { clearUser(); } catch (e) { /* ignore */ }
-    try { window.dispatchEvent(new Event('mrcv:user-changed')); } catch (e) { /* ignore */ }
+    try {
+      window.dispatchEvent(new Event('cal:user-changed'));
+      window.dispatchEvent(new Event('mrcv:user-changed'));
+    } catch (e) { /* ignore */ }
     navigate('/');
   };
 

@@ -26,9 +26,11 @@ export default function Templates() {
 
   React.useEffect(() => {
     const refresh = () => setEntitlementTick((x) => x + 1);
+    window.addEventListener('cal:entitlement-changed', refresh);
     window.addEventListener('mrcv:entitlement-changed', refresh);
     window.addEventListener('storage', refresh);
     return () => {
+      window.removeEventListener('cal:entitlement-changed', refresh);
       window.removeEventListener('mrcv:entitlement-changed', refresh);
       window.removeEventListener('storage', refresh);
     };

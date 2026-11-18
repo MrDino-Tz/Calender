@@ -14,7 +14,7 @@ export default function Letters() {
   const { t } = useLang();
   const { cvs, letters, refresh } = useStore();
   const [mode, setMode] = React.useState(() => {
-    try { return localStorage.getItem('mrcv.letterMode') || null; } catch (e) { return null; }
+    try { return localStorage.getItem('cal.letterMode') || localStorage.getItem('mrcv.letterMode') || null; } catch (e) { return null; }
   });
   const [editingId, setEditingId] = React.useState(null);
   const [job, setJob] = React.useState('');
@@ -177,7 +177,9 @@ const cvMap = React.useMemo(() => Object.fromEntries(cvs.map((c) => [c.id, c.nam
 
   const showMode = (m) => {
     setMode(m);
-    try { localStorage.setItem('mrcv.letterMode', m || ''); } catch (e) { /* ignore */ }
+    try {
+      localStorage.setItem('cal.letterMode', m || '');
+    } catch (e) { /* ignore */ }
   };
 
   const exportName = (title) => `Cover-Letter-${(String(title || 'draft')).replace(/[^\w -]+/g, '') || 'draft'}`;

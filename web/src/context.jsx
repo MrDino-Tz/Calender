@@ -7,7 +7,7 @@ const LangCtx = createContext({ lang: 'EN', t: (k) => k, setLang: () => {} });
 
 function initialTheme() {
   try {
-    const s = localStorage.getItem('mrcv.theme');
+    const s = localStorage.getItem('cal.theme') || localStorage.getItem('mrcv.theme');
     if (s === 'dark' || s === 'light') return s;
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
   } catch (e) { /* ignore */ }
@@ -18,7 +18,7 @@ export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(initialTheme);
   useEffect(() => {
     document.documentElement.setAttribute('data-bs-theme', theme);
-    try { localStorage.setItem('mrcv.theme', theme); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('cal.theme', theme); } catch (e) { /* ignore */ }
   }, [theme]);
   const toggle = useCallback(() => setThemeState((m) => (m === 'dark' ? 'light' : 'dark')), []);
   return <ThemeCtx.Provider value={{ theme, toggle }}>{children}</ThemeCtx.Provider>;

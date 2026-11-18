@@ -1,4 +1,4 @@
-// MrCV smoke tests — pure lib functions with DOM stubs. Run: npm test
+// Calendar smoke tests — pure lib functions with DOM stubs. Run: npm test
 const store = {};
 global.localStorage = {
   getItem: (k) => (k in store ? store[k] : null),

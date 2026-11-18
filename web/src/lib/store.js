@@ -1,5 +1,5 @@
-// Mwandishi local-first store — P0: works with no account, data stays on device.
-const KEY = 'mrcv.v1';
+// Calendar / Mwandishi local-first store — P0: works with no account, data stays on device.
+const KEY = 'cal.v1';
 const nowISO = () => new Date().toISOString();
 
 export const TEMPLATES = [
@@ -56,7 +56,7 @@ function seed() {
 
 export function load() {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(KEY) || localStorage.getItem('mrcv.v1');
     if (raw) return JSON.parse(raw);
   } catch (e) { /* corrupted -> reseed */ }
   const s = seed();
@@ -221,7 +221,7 @@ export function collectSheetCSS(theme) {
 // unreachable so callers fall back to local export (offline-first).
 export function backendBase() {
   try {
-    if (window.MRCV_BACKEND_URL) return String(window.MRCV_BACKEND_URL).replace(/\/$/, '');
+    if (window.CAL_BACKEND_URL || window.MRCV_BACKEND_URL) return String(window.CAL_BACKEND_URL || window.MRCV_BACKEND_URL).replace(/\/$/, '');
     const h = location.hostname || '';
     if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:8000/api';
     return '/api';
@@ -234,9 +234,9 @@ export function backendBase() {
 // Goes to the admin inbox (POST /api/feedback) when the backend is reachable;
 // otherwise queued on-device (offline-first) so nothing is ever lost. The
 // queue is retried on every later submit.
-const FB_KEY = 'mrcv.feedback';
+const FB_KEY = 'cal.feedback';
 // Tab-scoped admin passcode: closing the tab locks the inbox again.
-export const ADMIN_KEY_KEY = 'mrcv.adminKey';
+export const ADMIN_KEY_KEY = 'cal.adminKey';
 export function getFeedbackQueue() {
   try {
     const q = JSON.parse(localStorage.getItem(FB_KEY) || '[]');
@@ -751,13 +751,13 @@ export function normalizeTZPhone(raw) {
 }
 
 // ---- device-local user profile ----
-const USER_KEY = 'mrcv.user';
+const USER_KEY = 'cal.user';
 export function getUser() {
-  try { return JSON.parse(localStorage.getItem(USER_KEY)) || {}; }
+  try { return JSON.parse(localStorage.getItem(USER_KEY) || localStorage.getItem('mrcv.user')) || {}; }
   catch (e) { return {}; }
 }
 export function saveUser(u) { localStorage.setItem(USER_KEY, JSON.stringify(u || {})); }
-export function clearUser() { localStorage.removeItem(USER_KEY); }
+export function clearUser() { localStorage.removeItem(USER_KEY); localStorage.removeItem('mrcv.user'); }
 
 // ---- target country / region ----
 export const COUNTRIES = [
@@ -1330,10 +1330,10 @@ export const PRO_TEMPLATES = ['clinical', 'exact'];
 
 export function getDeviceId() {
   try {
-    let id = localStorage.getItem('mrcv.device');
+    let id = localStorage.getItem('cal.device') || localStorage.getItem('mrcv.device');
     if (!id) {
       id = 'dev-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now().toString(36);
-      localStorage.setItem('mrcv.device', id);
+      localStorage.setItem('cal.device', id);
     }
     return id;
   } catch (e) {
@@ -1343,7 +1343,7 @@ export function getDeviceId() {
 
 export function getLocalEntitlements() {
   try {
-    const raw = localStorage.getItem('mrcv.entitlements');
+    const raw = localStorage.getItem('cal.entitlements') || localStorage.getItem('mrcv.entitlements');
     return Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [];
   } catch (e) {
     return [];
@@ -1356,8 +1356,9 @@ export function saveLocalEntitlement(item) {
     const list = getLocalEntitlements();
     if (!list.includes(item)) {
       list.push(item);
-      localStorage.setItem('mrcv.entitlements', JSON.stringify(list));
+      localStorage.setItem('cal.entitlements', JSON.stringify(list));
       if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new Event('cal:entitlement-changed'));
         window.dispatchEvent(new Event('mrcv:entitlement-changed'));
       }
     }
