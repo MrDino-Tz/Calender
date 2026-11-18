@@ -1,17 +1,17 @@
 {
-  "name": "mwandishi-ai-frontend",
+  "name": "calendar-web-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Mwandishi AI — ATS-friendly CV and cover letter builder for Tanzanian employers, in English and Kiswahili.",
-  "homepage": "https://mwandishi.dtcwonders.online/",
+  "description": "Calendar web app with Google Calendar-style arrangement using React, Bootstrap 5, and Tabler icons.",
+  "homepage": "https://calendar.dtcwonders.online",
   "keywords": [
-    "cv-builder",
-    "cover-letter",
-    "ats",
-    "ats-friendly",
-    "kiswahili",
+    "calendar",
+    "google-calendar",
+    "events",
+    "schedule",
+    "planner",
     "tanzania",
-    "mwandishi-ai"
+    "dtc-wonders"
   ],
   "author": "DTC Wonders",
   "license": "ISC",
