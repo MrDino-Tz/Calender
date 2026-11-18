@@ -22,11 +22,61 @@ const VIEWS = [
 const VALID_VIEWS = VIEWS.map((v) => v.id);
 
 const DEFAULT_CALENDARS = [
-  { id: 'work', name: 'Work', color: '#1A73E8', visible: true },
-  { id: 'personal', name: 'Personal', color: '#188038', visible: true },
-  { id: 'family', name: 'Family', color: '#F9AB00', visible: true },
-  { id: 'holidays', name: 'Holidays', color: '#D93025', visible: false },
+  { id: 'work', name: 'Work', color: '#1A73E8', visible: true, group: 'my' },
+  { id: 'personal', name: 'Personal', color: '#188038', visible: true, group: 'my' },
+  { id: 'family', name: 'Family', color: '#F9AB00', visible: true, group: 'my' },
+  { id: 'tz-holidays', name: 'Holidays in Tanzania', color: '#0F9D58', visible: true, group: 'other' },
 ];
+
+export function getTanzaniaHolidays(year) {
+  const easterMap = {
+    2025: { gfMonth: 3, gfDay: 18, emMonth: 3, emDay: 21 },
+    2026: { gfMonth: 3, gfDay: 3, emMonth: 3, emDay: 6 },
+    2027: { gfMonth: 2, gfDay: 26, emMonth: 2, emDay: 29 },
+  };
+  const islamicMap = {
+    2025: { fitrM: 2, fitrD: 31, adhaM: 5, adhaD: 7, maulidM: 8, maulidD: 5 },
+    2026: { fitrM: 2, fitrD: 20, adhaM: 4, adhaD: 27, maulidM: 7, maulidD: 25 },
+    2027: { fitrM: 2, fitrD: 10, adhaM: 4, adhaD: 17, maulidM: 7, maulidD: 15 },
+  };
+
+  const day = (m, d) => new Date(year, m, d);
+  const nextDay = (m, d) => new Date(year, m, d + 1);
+
+  const holidays = [
+    { id: `tz-newyear-${year}`, title: "New Year's Day (Mwaka Mpya)", m: 0, d: 1 },
+    { id: `tz-mapinduzi-${year}`, title: "Zanzibar Revolution Day (Mapinduzi ya Zanzibar)", m: 0, d: 12 },
+    { id: `tz-karume-${year}`, title: "Karume Day (Kumbukumbu ya Karume)", m: 3, d: 7 },
+    { id: `tz-union-${year}`, title: "Union Day (Siku ya Muungano)", m: 3, d: 26 },
+    { id: `tz-workers-${year}`, title: "Labour Day (Mei Mosi)", m: 4, d: 1 },
+    { id: `tz-sabasaba-${year}`, title: "Saba Saba Day (Trade Fair Day)", m: 6, d: 7 },
+    { id: `tz-nanenane-${year}`, title: "Nane Nane Day (Farmers' Day)", m: 7, d: 8 },
+    { id: `tz-nyerere-${year}`, title: "Nyerere Day (Kumbukumbu ya Mwalimu Nyerere)", m: 9, d: 14 },
+    { id: `tz-uhuru-${year}`, title: "Independence & Republic Day (Siku ya Uhuru)", m: 11, d: 9 },
+    { id: `tz-xmas-${year}`, title: "Christmas Day (Sikukuu ya Krismasi)", m: 11, d: 25 },
+    { id: `tz-boxing-${year}`, title: "Boxing Day (Sikukuu ya Ndondi)", m: 11, d: 26 },
+  ];
+
+  const e = easterMap[year] || easterMap[2026];
+  holidays.push({ id: `tz-gf-${year}`, title: "Good Friday (Ijumaa Kuu)", m: e.gfMonth, d: e.gfDay });
+  holidays.push({ id: `tz-em-${year}`, title: "Easter Monday (Jumatatu ya Pasaka)", m: e.emMonth, d: e.emDay });
+
+  const isl = islamicMap[year] || islamicMap[2026];
+  holidays.push({ id: `tz-fitr-${year}`, title: "Eid al-Fitr (Sikukuu ya Idi el-Fitr)", m: isl.fitrM, d: isl.fitrD });
+  holidays.push({ id: `tz-adha-${year}`, title: "Eid al-Adha (Sikukuu ya Idi el-Hajj)", m: isl.adhaM, d: isl.adhaD });
+  holidays.push({ id: `tz-maulid-${year}`, title: "Maulid Day (Mazazi ya Mtume)", m: isl.maulidM, d: isl.maulidD });
+
+  return holidays.map((h) => ({
+    id: h.id,
+    title: h.title,
+    calendarId: 'tz-holidays',
+    allDay: true,
+    start: day(h.m, h.d),
+    end: nextDay(h.m, h.d),
+    location: 'Tanzania',
+    description: 'Tanzania National Public Holiday',
+  }));
+}
 
 // ---- date helpers ---------------------------------------------------------
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -113,7 +163,14 @@ function makeSeedEvents() {
     ...extra,
   });
 
+  const tzHolidays = [
+    ...getTanzaniaHolidays(today.getFullYear() - 1),
+    ...getTanzaniaHolidays(today.getFullYear()),
+    ...getTanzaniaHolidays(today.getFullYear() + 1),
+  ];
+
   return [
+    ...tzHolidays,
     ev('e1', 'Team stand-up', day(0), 9, 0, 9, 30, 'work', { location: 'Google Meet' }),
     ev('e2', 'Design review', day(0), 11, 0, 12, 0, 'work'),
     ev('e12', 'Product sync', day(0), 11, 30, 12, 30, 'personal'),
@@ -121,7 +178,6 @@ function makeSeedEvents() {
     ev('e4', 'Client call', day(1), 10, 0, 11, 0, 'work', { location: 'Zoom' }),
     ev('e5', 'Lunch with team', day(1), 13, 0, 14, 0, 'personal'),
     ev('e6', 'Gym', day(2), 17, 0, 18, 0, 'personal'),
-    { id: 'e7', title: 'Public holiday', calendarId: 'holidays', allDay: true, start: day(3), end: addDays(day(3), 1) },
     ev('e8', 'Sprint planning', day(4), 9, 30, 11, 0, 'work'),
     ev('e9', 'Family lunch', day(5), 12, 0, 13, 30, 'family'),
     ev('e10', 'Project retro', day(-2), 15, 0, 16, 0, 'work'),
@@ -387,6 +443,42 @@ export default function Calendar() {
   const [draft, setDraft] = React.useState(null);
   const [selected, setSelected] = React.useState(null);
   const [now, setNow] = React.useState(() => new Date());
+  const [addCalOpen, setAddCalOpen] = React.useState(false);
+  const [newCalName, setNewCalName] = React.useState('');
+  const [newCalColor, setNewCalColor] = React.useState('#1A73E8');
+
+  const myCalendars = calendars.filter((c) => c.group !== 'other');
+  const otherCalendars = calendars.filter((c) => c.group === 'other');
+  const tzHolidaysCal = calendars.find((c) => c.id === 'tz-holidays');
+
+  const addOrToggleTzHolidays = () => {
+    if (tzHolidaysCal) {
+      setCalendars((prev) => prev.map((c) => (c.id === 'tz-holidays' ? { ...c, visible: !c.visible } : c)));
+    } else {
+      const today = new Date();
+      const tzEvents = [
+        ...getTanzaniaHolidays(today.getFullYear() - 1),
+        ...getTanzaniaHolidays(today.getFullYear()),
+        ...getTanzaniaHolidays(today.getFullYear() + 1),
+      ];
+      setCalendars((prev) => [
+        ...prev,
+        { id: 'tz-holidays', name: 'Holidays in Tanzania', color: '#0F9D58', visible: true, group: 'other' },
+      ]);
+      setEvents((prev) => [...prev.filter((e) => e.calendarId !== 'tz-holidays'), ...tzEvents]);
+    }
+  };
+
+  const createCustomCalendar = () => {
+    if (!newCalName.trim()) return;
+    const newId = 'cal-' + Date.now().toString(36);
+    setCalendars((prev) => [
+      ...prev,
+      { id: newId, name: newCalName.trim(), color: newCalColor, visible: true, group: 'other' },
+    ]);
+    setNewCalName('');
+    setAddCalOpen(false);
+  };
 
   React.useEffect(() => {
     const id = window.setInterval(() => setNow(new Date()), 60000);
@@ -421,7 +513,7 @@ export default function Calendar() {
       start: '09:00',
       end: '10:00',
       title: '',
-      calendarId: calendars.find((c) => c.visible)?.id || calendars[0]?.id || 'work',
+      calendarId: calendars.find((c) => c.visible && c.group !== 'other')?.id || calendars.find((c) => c.visible)?.id || calendars[0]?.id || 'work',
       allDay: false,
       location: '',
       description: '',
@@ -593,7 +685,7 @@ export default function Calendar() {
           <div className="cal-side-section">
             <div className="cal-side-heading">My calendars</div>
             <ul className="cal-cal-list">
-              {calendars.map((cal) => (
+              {myCalendars.map((cal) => (
                 <li
                   key={cal.id}
                   className={`cal-cal-row${cal.visible ? ' is-on' : ''}`}
@@ -617,7 +709,31 @@ export default function Calendar() {
           <div className="cal-side-section">
             <div className="cal-side-heading">Other calendars</div>
             <ul className="cal-cal-list">
-              <li className="cal-cal-row">
+              {otherCalendars.map((cal) => (
+                <li
+                  key={cal.id}
+                  className={`cal-cal-row${cal.visible ? ' is-on' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={cal.visible}
+                  onClick={() => toggleCalendar(cal.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCalendar(cal.id); }
+                  }}
+                >
+                  <span className="cal-cal-check" style={{ borderColor: cal.color, background: cal.visible ? cal.color : 'transparent' }}>
+                    {cal.visible ? <i className="ti ti-check"></i> : null}
+                  </span>
+                  <span className="cal-cal-name">{cal.name}</span>
+                </li>
+              ))}
+              <li
+                className="cal-cal-row"
+                role="button"
+                tabIndex={0}
+                onClick={() => setAddCalOpen(true)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAddCalOpen(true); } }}
+              >
                 <span className="cal-cal-check" style={{ borderColor: 'var(--cal-text-muted)' }}><i className="ti ti-plus" style={{ fontSize: 9 }}></i></span>
                 <span className="cal-cal-name">Add calendar</span>
               </li>
@@ -808,6 +924,85 @@ export default function Calendar() {
             </p>
           </div>
         ) : null}
+      </Modal>
+
+      <Modal
+        open={addCalOpen}
+        onClose={() => setAddCalOpen(false)}
+        title="Add calendar"
+        footer={(
+          <button type="button" className="btn btn-light" onClick={() => setAddCalOpen(false)}>Close</button>
+        )}
+      >
+        <div className="text-start">
+          <div className="mb-4">
+            <h6 className="fw-semibold mb-2">Regional & Public Calendars</h6>
+            <div className="p-3 border rounded d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3" style={{ background: 'var(--cal-surface-2)' }}>
+              <div>
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <span style={{ fontSize: '1.25rem' }}>🇹🇿</span>
+                  <strong>Holidays in Tanzania</strong>
+                  <span className="badge bg-success-subtle text-success border border-success-subtle">Official</span>
+                </div>
+                <div className="small text-secondary">
+                  National public holidays (Sikukuu za Kitaifa) including Union Day, Nyerere Day, Karume Day, Eid al-Fitr, Eid al-Adha, Saba Saba, Nane Nane, and Independence Day.
+                </div>
+              </div>
+              <button
+                type="button"
+                className={`btn btn-sm ${tzHolidaysCal?.visible ? 'btn-outline-danger' : 'btn-success'} text-nowrap`}
+                onClick={addOrToggleTzHolidays}
+              >
+                {tzHolidaysCal ? (tzHolidaysCal.visible ? 'Hide from calendar' : 'Show on calendar') : '+ Add calendar'}
+              </button>
+            </div>
+          </div>
+
+          <hr />
+
+          <div>
+            <h6 className="fw-semibold mb-2">Create new calendar</h6>
+            <div className="mb-3">
+              <label className="form-label" htmlFor="new-cal-name">Calendar name</label>
+              <input
+                id="new-cal-name"
+                className="form-control"
+                placeholder="e.g. Football matches, University, Projects"
+                value={newCalName}
+                onChange={(e) => setNewCalName(e.target.value)}
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label d-block">Calendar color</label>
+              <div className="d-flex gap-2 align-items-center flex-wrap">
+                {['#1A73E8', '#188038', '#0F9D58', '#F9AB00', '#D93025', '#A142F4', '#E37400', '#0097A7'].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setNewCalColor(c)}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      background: c,
+                      border: newCalColor === c ? '3px solid var(--cal-text)' : '2px solid transparent',
+                      cursor: 'pointer',
+                    }}
+                    title={c}
+                  />
+                ))}
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              disabled={!newCalName.trim()}
+              onClick={createCustomCalendar}
+            >
+              <i className="ti ti-plus me-1"></i>Create calendar
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
