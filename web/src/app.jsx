@@ -31,8 +31,8 @@ export default function App() {
           <Route path="/letters" element={<Letters />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/status" element={<AdminStatus />} />
-          <Route path="/signin" element={<Signin />} />
-          <Route path="/signup" element={<Signup />} />
+          <Route path="/signin" element={<Navigate to="/calendar?signin=1" replace />} />
+          <Route path="/signup" element={<Navigate to="/calendar?signup=1" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </LangProvider>

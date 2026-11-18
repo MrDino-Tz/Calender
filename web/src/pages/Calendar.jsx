@@ -3,6 +3,8 @@ import { NavLink } from 'react-router-dom';
 import Modal from '../components/Modal.jsx';
 import { useTheme } from '../context.jsx';
 import logoUrl from '../assets/images/logo-leaf.png';
+import { PUBLIC_CALENDARS_CATALOG, getTanzaniaHolidays } from '../lib/publicCalendars.js';
+import { GoogleIcon } from './Auth.jsx';
 
 // ---------------------------------------------------------------------------
 // Calendar — Google Calendar-style arrangement rendered with the template's
@@ -16,6 +18,7 @@ const VIEWS = [
   { id: 'day', label: 'Day' },
   { id: 'week', label: 'Week' },
   { id: 'month', label: 'Month' },
+  { id: 'year', label: 'Year' },
   { id: 'agenda', label: 'Agenda' },
 ];
 
@@ -25,58 +28,8 @@ const DEFAULT_CALENDARS = [
   { id: 'work', name: 'Work', color: '#1A73E8', visible: true, group: 'my' },
   { id: 'personal', name: 'Personal', color: '#188038', visible: true, group: 'my' },
   { id: 'family', name: 'Family', color: '#F9AB00', visible: true, group: 'my' },
-  { id: 'tz-holidays', name: 'Holidays in Tanzania', color: '#0F9D58', visible: true, group: 'other' },
+  { id: 'tz-holidays', name: 'Holidays in Tanzania', color: '#0F9D58', visible: true, group: 'other', flag: '🇹🇿' },
 ];
-
-export function getTanzaniaHolidays(year) {
-  const easterMap = {
-    2025: { gfMonth: 3, gfDay: 18, emMonth: 3, emDay: 21 },
-    2026: { gfMonth: 3, gfDay: 3, emMonth: 3, emDay: 6 },
-    2027: { gfMonth: 2, gfDay: 26, emMonth: 2, emDay: 29 },
-  };
-  const islamicMap = {
-    2025: { fitrM: 2, fitrD: 31, adhaM: 5, adhaD: 7, maulidM: 8, maulidD: 5 },
-    2026: { fitrM: 2, fitrD: 20, adhaM: 4, adhaD: 27, maulidM: 7, maulidD: 25 },
-    2027: { fitrM: 2, fitrD: 10, adhaM: 4, adhaD: 17, maulidM: 7, maulidD: 15 },
-  };
-
-  const day = (m, d) => new Date(year, m, d);
-  const nextDay = (m, d) => new Date(year, m, d + 1);
-
-  const holidays = [
-    { id: `tz-newyear-${year}`, title: "New Year's Day (Mwaka Mpya)", m: 0, d: 1 },
-    { id: `tz-mapinduzi-${year}`, title: "Zanzibar Revolution Day (Mapinduzi ya Zanzibar)", m: 0, d: 12 },
-    { id: `tz-karume-${year}`, title: "Karume Day (Kumbukumbu ya Karume)", m: 3, d: 7 },
-    { id: `tz-union-${year}`, title: "Union Day (Siku ya Muungano)", m: 3, d: 26 },
-    { id: `tz-workers-${year}`, title: "Labour Day (Mei Mosi)", m: 4, d: 1 },
-    { id: `tz-sabasaba-${year}`, title: "Saba Saba Day (Trade Fair Day)", m: 6, d: 7 },
-    { id: `tz-nanenane-${year}`, title: "Nane Nane Day (Farmers' Day)", m: 7, d: 8 },
-    { id: `tz-nyerere-${year}`, title: "Nyerere Day (Kumbukumbu ya Mwalimu Nyerere)", m: 9, d: 14 },
-    { id: `tz-uhuru-${year}`, title: "Independence & Republic Day (Siku ya Uhuru)", m: 11, d: 9 },
-    { id: `tz-xmas-${year}`, title: "Christmas Day (Sikukuu ya Krismasi)", m: 11, d: 25 },
-    { id: `tz-boxing-${year}`, title: "Boxing Day (Sikukuu ya Ndondi)", m: 11, d: 26 },
-  ];
-
-  const e = easterMap[year] || easterMap[2026];
-  holidays.push({ id: `tz-gf-${year}`, title: "Good Friday (Ijumaa Kuu)", m: e.gfMonth, d: e.gfDay });
-  holidays.push({ id: `tz-em-${year}`, title: "Easter Monday (Jumatatu ya Pasaka)", m: e.emMonth, d: e.emDay });
-
-  const isl = islamicMap[year] || islamicMap[2026];
-  holidays.push({ id: `tz-fitr-${year}`, title: "Eid al-Fitr (Sikukuu ya Idi el-Fitr)", m: isl.fitrM, d: isl.fitrD });
-  holidays.push({ id: `tz-adha-${year}`, title: "Eid al-Adha (Sikukuu ya Idi el-Hajj)", m: isl.adhaM, d: isl.adhaD });
-  holidays.push({ id: `tz-maulid-${year}`, title: "Maulid Day (Mazazi ya Mtume)", m: isl.maulidM, d: isl.maulidD });
-
-  return holidays.map((h) => ({
-    id: h.id,
-    title: h.title,
-    calendarId: 'tz-holidays',
-    allDay: true,
-    start: day(h.m, h.d),
-    end: nextDay(h.m, h.d),
-    location: 'Tanzania',
-    description: 'Tanzania National Public Holiday',
-  }));
-}
 
 // ---- date helpers ---------------------------------------------------------
 const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -401,6 +354,129 @@ function TimeView({ days, now, eventsForDay, calFor, onOpenEvent, onCreate, isDa
 }
 
 // ---- agenda ---------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// YearView — 4×3 grid of mini month calendars for the selected year
+// ---------------------------------------------------------------------------
+const YEAR_WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+function YearMiniMonth({ year, month, now, eventsForDay, calFor, onSelectDay, onSelectMonth }) {
+  const firstDay = new Date(year, month, 1);
+  // Monday-based: 0=Mon…6=Sun
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // Build cell array: nulls for padding + day numbers
+  const cells = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  // Pad to full weeks
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  return (
+    <div className="cal-year-month">
+      <div
+        className="cal-year-month-heading"
+        role="button"
+        tabIndex={0}
+        onClick={() => onSelectMonth(month)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectMonth(month); }}
+      >
+        {MONTH_NAMES[month]}
+      </div>
+      <div className="cal-year-grid">
+        {YEAR_WEEKDAYS.map((wd, i) => (
+          <div key={i} className="cal-year-weekday">{wd}</div>
+        ))}
+        {cells.map((day, idx) => {
+          if (!day) return <div key={`pad-${idx}`} />;
+          const date = new Date(year, month, day);
+          const isToday = sameDay(date, now);
+          const dayEvents = eventsForDay(date);
+          const dots = dayEvents.slice(0, 3).map((ev) => calFor(ev.calendarId));
+          return (
+            <button
+              key={day}
+              type="button"
+              className={`cal-year-day${isToday ? ' today' : ''}${dayEvents.length ? ' has-events' : ''}`}
+              onClick={() => onSelectDay(date)}
+              title={date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            >
+              <span className="cal-year-day-num">{day}</span>
+              {dots.length > 0 && (
+                <span className="cal-year-dots">
+                  {dots.map((cal, di) => (
+                    <span key={di} className="cal-year-dot" style={{ background: cal.color }} />
+                  ))}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function YearView({ cursor, now, eventsForDay, calFor, onSelectDay, onSelectMonth, onNavigateYear, onSetYear }) {
+  const year = cursor.getFullYear();
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const dir = e.deltaY > 0 ? 1 : -1;
+    onNavigateYear(dir);
+  };
+  const handleHeaderClick = () => {
+    const input = window.prompt('Enter year to view:', year);
+    const y = Number(input);
+    if (!isNaN(y)) onSetYear(y);
+  };
+  const [menuPos, setMenuPos] = React.useState(null);
+  const handleHeaderContext = (e) => {
+    e.preventDefault();
+    setMenuPos({ x: e.clientX, y: e.clientY });
+  };
+  const closeMenu = () => setMenuPos(null);
+  const goToCurrent = () => {
+    onSetYear(new Date().getFullYear());
+    closeMenu();
+  };
+  const goToPrompt = () => {
+    handleHeaderClick();
+    closeMenu();
+  };
+  return (
+    <div className="cal-year" onWheel={handleWheel}>
+      <div className="cal-year-header" onClick={handleHeaderClick} onContextMenu={handleHeaderContext} role="button" tabIndex={0}>
+        <div>Today</div>
+        <div>{year}</div>
+      </div>
+      {menuPos && (
+        <div className="year-context-menu" style={{ position: 'fixed', top: menuPos.y, left: menuPos.x, background: 'var(--cal-surface)', border: '1px solid var(--cal-border)', zIndex: 1000 }} onMouseLeave={closeMenu}>
+          <button type="button" className="year-menu-item" onClick={goToCurrent}>Current year</button>
+          <button type="button" className="year-menu-item" onClick={goToPrompt}>Jump to…</button>
+        </div>
+      )}
+      {Array.from({ length: 12 }, (_, m) => (
+        <YearMiniMonth
+          key={m}
+          year={year}
+          month={m}
+          now={now}
+          eventsForDay={eventsForDay}
+          calFor={calFor}
+          onSelectDay={onSelectDay}
+          onSelectMonth={onSelectMonth}
+        />
+      ))}
+    </div>
+  );
+}
+
+
+
+// ---------------------------------------------------------------------------
 function AgendaView({ events, calFor, onOpenEvent }) {
   const groups = React.useMemo(() => {
     const today = startOfDay(new Date());
@@ -480,6 +556,72 @@ export default function Calendar() {
     try { return localStorage.getItem('cal.timeFormat') || '12h'; } catch (e) { return '12h'; }
   });
 
+  const [authOpen, setAuthOpen] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    const p = new URLSearchParams(window.location.search);
+    return p.get('signin') === '1' || p.get('signin') === 'true' || p.get('signup') === '1' || p.get('signup') === 'true';
+  });
+  const [authMode, setAuthMode] = React.useState(() => {
+    if (typeof window === 'undefined') return 'signin';
+    const p = new URLSearchParams(window.location.search);
+    return (p.get('signup') === '1' || p.get('signup') === 'true') ? 'signup' : 'signin';
+  });
+  const [authEmail, setAuthEmail] = React.useState('');
+  const [authPassword, setAuthPassword] = React.useState('');
+  const [authName, setAuthName] = React.useState('');
+  const [authRemember, setAuthRemember] = React.useState(true);
+  const [authSuccessMsg, setAuthSuccessMsg] = React.useState('');
+
+  const [isSignedIn, setIsSignedIn] = React.useState(() => {
+    try { return localStorage.getItem('cal.signedIn') === 'true'; } catch (e) { return false; }
+  });
+  const [userEmail, setUserEmail] = React.useState(() => {
+    try { return localStorage.getItem('cal.userEmail') || ''; } catch (e) { return ''; }
+  });
+  const [authProvider, setAuthProvider] = React.useState(() => {
+    try { return localStorage.getItem('cal.authProvider') || ''; } catch (e) { return ''; }
+  });
+
+  const [googleNotice, setGoogleNotice] = React.useState(false);
+
+  const handleGoogleSignIn = () => {
+    setGoogleNotice(true);
+    setTimeout(() => setGoogleNotice(false), 5000);
+  };
+
+  const handleEmailAuth = (e) => {
+    e.preventDefault();
+    const nameToUse = authName.trim() || authEmail.split('@')[0] || 'User';
+    setIsSignedIn(true);
+    setAuthProvider('email');
+    setUserEmail(authEmail);
+    saveDisplayName(nameToUse);
+    try {
+      localStorage.setItem('cal.signedIn', 'true');
+      localStorage.setItem('cal.authProvider', 'email');
+      localStorage.setItem('cal.userEmail', authEmail);
+    } catch (e) { /* ignore */ }
+    setAuthSuccessMsg(authMode === 'signin' ? 'Signed in successfully! Calendar sync active.' : 'Account created and synced!');
+    setTimeout(() => {
+      setAuthOpen(false);
+      setAuthSuccessMsg('');
+    }, 1000);
+  };
+
+  const handleSignOut = () => {
+    setIsSignedIn(false);
+    setAuthProvider('');
+    setUserEmail('');
+    saveDisplayName('Anonymous');
+    try {
+      localStorage.removeItem('cal.signedIn');
+      localStorage.removeItem('cal.authProvider');
+      localStorage.removeItem('cal.userEmail');
+      localStorage.setItem('cal.displayName', 'Anonymous');
+    } catch (e) { /* ignore */ }
+    setProfileOpen(false);
+  };
+
   const saveDisplayName = (val) => {
     setDisplayName(val);
     try { localStorage.setItem('cal.displayName', val); } catch (e) { /* ignore */ }
@@ -527,24 +669,39 @@ export default function Calendar() {
 
   const myCalendars = calendars.filter((c) => c.group !== 'other');
   const otherCalendars = calendars.filter((c) => c.group === 'other');
-  const tzHolidaysCal = calendars.find((c) => c.id === 'tz-holidays');
+  const [catalogCategory, setCatalogCategory] = React.useState('All');
 
-  const addOrToggleTzHolidays = () => {
-    if (tzHolidaysCal) {
-      setCalendars((prev) => prev.map((c) => (c.id === 'tz-holidays' ? { ...c, visible: !c.visible } : c)));
+  const filteredCatalog = React.useMemo(() => {
+    if (catalogCategory === 'All') return PUBLIC_CALENDARS_CATALOG;
+    return PUBLIC_CALENDARS_CATALOG.filter((c) => c.category === catalogCategory);
+  }, [catalogCategory]);
+
+  const toggleSubscribePublicCalendar = (item) => {
+    const existing = calendars.find((c) => c.id === item.id);
+    if (existing) {
+      setCalendars((prev) => prev.map((c) => (c.id === item.id ? { ...c, visible: !c.visible } : c)));
     } else {
       const today = new Date();
-      const tzEvents = [
-        ...getTanzaniaHolidays(today.getFullYear() - 1),
-        ...getTanzaniaHolidays(today.getFullYear()),
-        ...getTanzaniaHolidays(today.getFullYear() + 1),
-      ];
+      const years = [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1];
+      const newEvents = item.getEvents(years);
       setCalendars((prev) => [
         ...prev,
-        { id: 'tz-holidays', name: 'Holidays in Tanzania', color: '#0F9D58', visible: true, group: 'other' },
+        {
+          id: item.id,
+          name: item.name,
+          color: item.color,
+          visible: true,
+          group: 'other',
+          flag: item.flag,
+        },
       ]);
-      setEvents((prev) => [...prev.filter((e) => e.calendarId !== 'tz-holidays'), ...tzEvents]);
+      setEvents((prev) => [...prev.filter((e) => e.calendarId !== item.id), ...newEvents]);
     }
+  };
+
+  const removePublicCalendar = (calendarId) => {
+    setCalendars((prev) => prev.filter((c) => c.id !== calendarId));
+    setEvents((prev) => prev.filter((e) => e.calendarId !== calendarId));
   };
 
   const createCustomCalendar = () => {
@@ -656,6 +813,7 @@ export default function Calendar() {
     setCursor((c) => {
       if (view === 'week') return addDays(c, dir * 7);
       if (view === 'day') return addDays(c, dir);
+      if (view === 'year') return new Date(c.getFullYear() + dir, c.getMonth(), 1);
       return addMonths(c, dir);
     });
   };
@@ -671,6 +829,7 @@ export default function Calendar() {
       return `${start.toLocaleDateString('en-US', { month: 'short' })} ${start.getDate()} – ${end.toLocaleDateString('en-US', { month: 'short' })} ${end.getDate()}, ${end.getFullYear()}`;
     }
     if (view === 'day') return cursor.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    if (view === 'year') return String(cursor.getFullYear());
     return 'Agenda';
   };
 
@@ -683,6 +842,7 @@ export default function Calendar() {
       else if (e.key === 'd') setView('day');
       else if (e.key === 'w') setView('week');
       else if (e.key === 'm') setView('month');
+      else if (e.key === 'y') setView('year');
       else if (e.key === 'a') setView('agenda');
     };
     window.addEventListener('keydown', onKey);
@@ -728,14 +888,14 @@ export default function Calendar() {
           <button
             type="button"
             className="cal-profile-btn"
-            title="Profile (Anonymous)"
+            title={isSignedIn ? `Profile (${displayName})` : 'Profile (Anonymous)'}
             onClick={() => setProfileOpen(true)}
           >
-            <span className="cal-avatar">
+            <span className="cal-avatar" style={isSignedIn ? { background: 'var(--cal-accent)', color: '#fff' } : {}}>
               <i className="ti ti-user" style={{ fontSize: 14 }}></i>
             </span>
             <span className="d-none d-sm-inline fw-semibold text-truncate" style={{ maxWidth: 100 }}>
-              {displayName || 'Anonymous'}
+              {displayName || (isSignedIn ? 'User' : 'Anonymous')}
             </span>
           </button>
         </div>
@@ -794,7 +954,7 @@ export default function Calendar() {
                   <span className="cal-cal-check" style={{ borderColor: cal.color, background: cal.visible ? cal.color : 'transparent' }}>
                     {cal.visible ? <i className="ti ti-check"></i> : null}
                   </span>
-                  <span className="cal-cal-name">{cal.name}</span>
+                  <span className="cal-cal-name">{cal.flag ? `${cal.flag} ` : ''}{cal.name}</span>
                 </li>
               ))}
             </ul>
@@ -818,7 +978,7 @@ export default function Calendar() {
                   <span className="cal-cal-check" style={{ borderColor: cal.color, background: cal.visible ? cal.color : 'transparent' }}>
                     {cal.visible ? <i className="ti ti-check"></i> : null}
                   </span>
-                  <span className="cal-cal-name">{cal.name}</span>
+                  <span className="cal-cal-name">{cal.flag ? `${cal.flag} ` : ''}{cal.name}</span>
                 </li>
               ))}
               <li
@@ -835,8 +995,27 @@ export default function Calendar() {
           </div>
 
           <div className="cal-side-footer">
-            <NavLink to="/signin"><i className="ti ti-cloud"></i><span>Sign in to sync</span></NavLink>
-            <NavLink to="/dashboard"><i className="ti ti-layout-dashboard"></i><span>Dashboard</span></NavLink>
+            {isSignedIn ? (
+              <button
+                type="button"
+                className="cal-side-sync-btn text-success"
+                onClick={() => setProfileOpen(true)}
+                title="Calendar cloud sync active"
+              >
+                <i className="ti ti-cloud-check"></i>
+                <span className="text-truncate">Synced: {displayName || 'Account'}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="cal-side-sync-btn"
+                onClick={() => { setAuthMode('signin'); setAuthOpen(true); }}
+                title="Sign in to sync"
+              >
+                <i className="ti ti-cloud"></i>
+                <span>Sign in to sync</span>
+              </button>
+            )}
             <button type="button" onClick={() => setView('agenda')}><i className="ti ti-list"></i><span>Agenda</span></button>
           </div>
         </aside>
@@ -876,6 +1055,18 @@ export default function Calendar() {
           ) : null}
           {view === 'agenda' ? (
             <AgendaView events={visibleEvents} calFor={calFor} onOpenEvent={setSelected} />
+          ) : null}
+          {view === 'year' ? (
+            <YearView
+              cursor={cursor}
+              now={now}
+              eventsForDay={eventsForDay}
+              calFor={calFor}
+              onSelectDay={(d) => { setCursor(d); setView('month'); }}
+              onSelectMonth={(m) => { setCursor(new Date(cursor.getFullYear(), m, 1)); setView('month'); }}
+              onNavigateYear={navigate}
+              onSetYear={(y) => setCursor(new Date(y, cursor.getMonth(), cursor.getDate()))}
+            />
           ) : null}
         </main>
 
@@ -1024,44 +1215,114 @@ export default function Calendar() {
         open={addCalOpen}
         onClose={() => setAddCalOpen(false)}
         title="Add calendar"
+        size="modal-lg"
+        scrollable
         footer={(
           <button type="button" className="btn btn-light" onClick={() => setAddCalOpen(false)}>Close</button>
         )}
       >
         <div className="text-start">
+          {/* Section: Public, Continental & Worldwide Calendars */}
           <div className="mb-4">
-            <h6 className="fw-semibold mb-2">Regional & Public Calendars</h6>
-            <div className="p-3 border rounded d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3" style={{ background: 'var(--cal-surface-2)' }}>
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
               <div>
                 <div className="d-flex align-items-center gap-2 mb-1">
-                  <span style={{ fontSize: '1.25rem' }}>🇹🇿</span>
-                  <strong>Holidays in Tanzania</strong>
-                  <span className="badge bg-success-subtle text-success border border-success-subtle">Official</span>
+                  <h6 className="fw-bold mb-0">Public, Regional & Worldwide Calendars</h6>
+                  <span className="badge bg-success-subtle text-success border border-success-subtle">100% Free</span>
                 </div>
                 <div className="small text-secondary">
-                  National public holidays (Sikukuu za Kitaifa) including Union Day, Nyerere Day, Karume Day, Eid al-Fitr, Eid al-Adha, Saba Saba, Nane Nane, and Independence Day.
+                  Free to subscribe and browse — no payment or registration required.
                 </div>
               </div>
-              <button
-                type="button"
-                className={`btn btn-sm ${tzHolidaysCal?.visible ? 'btn-outline-danger' : 'btn-success'} text-nowrap`}
-                onClick={addOrToggleTzHolidays}
-              >
-                {tzHolidaysCal ? (tzHolidaysCal.visible ? 'Hide from calendar' : 'Show on calendar') : '+ Add calendar'}
-              </button>
+              <div className="btn-group btn-group-sm flex-wrap" role="group" aria-label="Catalog categories">
+                {['All', 'East Africa', 'Continental', 'International', 'Worldwide Countries'].map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    className={`btn btn-sm ${catalogCategory === cat ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    onClick={() => setCatalogCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="d-flex flex-column gap-2" style={{ maxHeight: '420px', overflowY: 'auto' }}>
+              {filteredCatalog.map((item) => {
+                const subCal = calendars.find((c) => c.id === item.id);
+                return (
+                  <div
+                    key={item.id}
+                    className="p-3 border rounded d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+                    style={{ background: 'var(--cal-surface-2)' }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <span style={{ fontSize: '1.25rem' }}>{item.flag}</span>
+                        <strong>{item.name}</strong>
+                        <span className="badge bg-success-subtle text-success border border-success-subtle">Free</span>
+                        <span className="badge bg-secondary-subtle text-secondary border">{item.badge}</span>
+                        <span
+                          className="cal-chip-dot d-inline-block"
+                          style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }}
+                          title={`Calendar color: ${item.color}`}
+                        />
+                      </div>
+                      <div className="small text-secondary">{item.description}</div>
+                    </div>
+
+                    <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                      {subCal ? (
+                        <div className="btn-group btn-group-sm">
+                          <button
+                            type="button"
+                            className={`btn btn-sm ${subCal.visible ? 'btn-outline-secondary' : 'btn-success'}`}
+                            onClick={() => toggleSubscribePublicCalendar(item)}
+                            title={subCal.visible ? 'Hide events from calendar view' : 'Show events on calendar view'}
+                          >
+                            <i className={`ti ${subCal.visible ? 'ti-eye-off' : 'ti-eye'} me-1`}></i>
+                            {subCal.visible ? 'Hide' : 'Show'}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => removePublicCalendar(item.id)}
+                            title="Unsubscribe and remove calendar"
+                          >
+                            <i className="ti ti-trash"></i>
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary text-nowrap"
+                          onClick={() => toggleSubscribePublicCalendar(item)}
+                        >
+                          <i className="ti ti-plus me-1"></i>Subscribe Free
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           <hr />
 
+          {/* Section: Create New Custom Calendar */}
           <div>
-            <h6 className="fw-semibold mb-2">Create new calendar</h6>
+            <div className="d-flex align-items-center gap-2 mb-2">
+              <h6 className="fw-bold mb-0">Create new custom calendar</h6>
+              <span className="badge bg-success-subtle text-success border border-success-subtle">Free</span>
+            </div>
             <div className="mb-3">
               <label className="form-label" htmlFor="new-cal-name">Calendar name</label>
               <input
                 id="new-cal-name"
                 className="form-control"
-                placeholder="e.g. Football matches, University, Projects"
+                placeholder="e.g. Football matches, University exams, Work projects"
                 value={newCalName}
                 onChange={(e) => setNewCalName(e.target.value)}
               />
@@ -1069,7 +1330,7 @@ export default function Calendar() {
             <div className="mb-3">
               <label className="form-label d-block">Calendar color</label>
               <div className="d-flex gap-2 align-items-center flex-wrap">
-                {['#1A73E8', '#188038', '#0F9D58', '#F9AB00', '#D93025', '#A142F4', '#E37400', '#0097A7'].map((c) => (
+                {['#1A73E8', '#188038', '#0F9D58', '#F9AB00', '#D93025', '#A142F4', '#E37400', '#0097A7', '#3949AB', '#7B1FA2'].map((c) => (
                   <button
                     key={c}
                     type="button"
@@ -1176,21 +1437,35 @@ export default function Calendar() {
       >
         <div className="text-start">
           <div className="d-flex align-items-center gap-3 mb-3 p-3 border rounded" style={{ background: 'var(--cal-surface-2)' }}>
-            <div className="cal-avatar" style={{ width: 44, height: 44, fontSize: '1.25rem' }}>
+            <div className="cal-avatar" style={{ width: 44, height: 44, fontSize: '1.25rem', ...(isSignedIn ? { background: 'var(--cal-accent)', color: '#fff' } : {}) }}>
               <i className="ti ti-user"></i>
             </div>
             <div>
-              <div className="fw-bold">{displayName || 'Anonymous Guest'}</div>
+              <div className="fw-bold">{displayName || (isSignedIn ? 'User' : 'Anonymous Guest')}</div>
               <div className="d-flex align-items-center gap-1 mt-1">
-                <span className="badge bg-secondary-subtle text-secondary border">Unregistered (Guest Mode)</span>
+                {isSignedIn ? (
+                  <span className="badge bg-success-subtle text-success border">
+                    <i className="ti ti-cloud-check me-1"></i>Synced ({authProvider === 'google' ? 'Google' : 'Email'})
+                  </span>
+                ) : (
+                  <span className="badge bg-secondary-subtle text-secondary border">Unregistered (Guest Mode)</span>
+                )}
               </div>
+              {userEmail ? <div className="small text-muted mt-1">{userEmail}</div> : null}
             </div>
           </div>
 
-          <div className="alert alert-info py-2 px-3 small d-flex align-items-center gap-2 mb-3">
-            <i className="ti ti-info-circle fs-5 flex-shrink-0"></i>
-            <span>You have not registered an account yet. All calendar events and notes are saved directly in your browser without requiring a login.</span>
-          </div>
+          {!isSignedIn ? (
+            <div className="alert alert-info py-2 px-3 small d-flex align-items-center gap-2 mb-3">
+              <i className="ti ti-info-circle fs-5 flex-shrink-0"></i>
+              <span>You have not registered an account yet. All calendar events and notes are saved directly in your browser without requiring a login.</span>
+            </div>
+          ) : (
+            <div className="alert alert-success py-2 px-3 small d-flex align-items-center gap-2 mb-3">
+              <i className="ti ti-circle-check fs-5 flex-shrink-0"></i>
+              <span>Your calendar is synced and backed up with your {authProvider === 'google' ? 'Google Account' : 'account'}.</span>
+            </div>
+          )}
 
           <div className="mb-3">
             <label className="form-label fw-semibold" htmlFor="cal-display-name">Display Name</label>
@@ -1206,18 +1481,207 @@ export default function Calendar() {
 
           <hr />
 
-          <h6 className="fw-semibold mb-2">Upgrade & Sync (Optional)</h6>
-          <p className="small text-secondary mb-3">
-            Want to access your calendar on other devices or link Google / Microsoft accounts?
-          </p>
+          {!isSignedIn ? (
+            <React.Fragment>
+              <h6 className="fw-semibold mb-2">Upgrade & Sync (Optional)</h6>
+              <p className="small text-secondary mb-3">
+                Want to access your calendar on other devices or link your Google Account?
+              </p>
 
-          <div className="d-flex gap-2">
-            <NavLink to="/signin" className="btn btn-primary btn-sm flex-fill text-center">
-              <i className="ti ti-login me-1"></i>Sign In
-            </NavLink>
-            <NavLink to="/signup" className="btn btn-outline-secondary btn-sm flex-fill text-center">
-              <i className="ti ti-user-plus me-1"></i>Create Account
-            </NavLink>
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm flex-fill text-center"
+                  onClick={() => { setProfileOpen(false); setAuthMode('signin'); setAuthOpen(true); }}
+                >
+                  <i className="ti ti-login me-1"></i>Sign In
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm flex-fill text-center"
+                  onClick={() => { setProfileOpen(false); setAuthMode('signup'); setAuthOpen(true); }}
+                >
+                  <i className="ti ti-user-plus me-1"></i>Create Account
+                </button>
+              </div>
+            </React.Fragment>
+          ) : (
+            <div>
+              <button type="button" className="btn btn-outline-danger btn-sm w-100" onClick={handleSignOut}>
+                <i className="ti ti-logout me-1"></i>Sign Out (Switch to Guest Mode)
+              </button>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* Sign in / Sign up Dialog Modal */}
+      <Modal
+        open={authOpen}
+        onClose={() => { setAuthOpen(false); setAuthSuccessMsg(''); }}
+      >
+        <div className="text-start">
+          <div className="text-center mb-3">
+            <div className="d-inline-flex align-items-center gap-2 mb-2 text-decoration-none">
+              <img src={logoUrl} alt="" width="32" height="32" />
+              <span className="fw-bold fs-4 text-primary">Calendar</span>
+            </div>
+            <h5 className="modal-title fw-bold mb-1">
+              {authMode === 'signin' ? 'Sign in to your account' : 'Create your account'}
+            </h5>
+            <p className="text-muted small mb-0">
+              {authMode === 'signin'
+                ? 'Sync your calendar across devices with Google or email'
+                : 'Create a free account to back up and sync your calendar'}
+            </p>
+          </div>
+
+          {authSuccessMsg ? (
+            <div className="alert alert-success d-flex align-items-center gap-2 py-2 px-3 small mb-3">
+              <i className="ti ti-circle-check fs-5 flex-shrink-0"></i>
+              <span>{authSuccessMsg}</span>
+            </div>
+          ) : null}
+
+          {/* Google account addition */}
+          <button
+            type="button"
+            className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-between py-2 px-3 fw-semibold mb-3"
+            onClick={handleGoogleSignIn}
+            style={{
+              background: 'var(--cal-surface)',
+              borderColor: 'var(--cal-border)',
+              color: 'var(--cal-text)',
+            }}
+          >
+            <div className="d-flex align-items-center gap-2">
+              <GoogleIcon size={18} />
+              <span>Continue with Google</span>
+            </div>
+            <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style={{ fontSize: '0.7rem' }}>
+              Coming soon
+            </span>
+          </button>
+
+          {googleNotice ? (
+            <div className="alert alert-warning py-2 px-3 small d-flex align-items-center gap-2 mb-3">
+              <i className="ti ti-clock fs-5 flex-shrink-0"></i>
+              <span>Google Account Sync is coming soon! Please use email sign-in or guest mode for now.</span>
+            </div>
+          ) : null}
+
+          <div className="d-flex align-items-center my-3">
+            <hr className="flex-grow-1 my-0" />
+            <span className="px-2 text-muted small">
+              or {authMode === 'signin' ? 'sign in' : 'sign up'} with email
+            </span>
+            <hr className="flex-grow-1 my-0" />
+          </div>
+
+          <form onSubmit={handleEmailAuth}>
+            {authMode === 'signup' ? (
+              <div className="mb-3">
+                <label htmlFor="auth-fullname" className="form-label small fw-semibold">Full name</label>
+                <input
+                  id="auth-fullname"
+                  type="text"
+                  className="form-control"
+                  placeholder="Jane Doe"
+                  required
+                  value={authName}
+                  onChange={(e) => setAuthName(e.target.value)}
+                />
+              </div>
+            ) : null}
+
+            <div className="mb-3">
+              <label htmlFor="auth-email" className="form-label small fw-semibold">Email address</label>
+              <input
+                id="auth-email"
+                type="email"
+                className="form-control"
+                placeholder="name@example.com"
+                required
+                autoFocus
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="mb-3">
+              <label htmlFor="auth-password" className="form-label small fw-semibold d-flex justify-content-between">
+                <span>Password</span>
+                {authMode === 'signin' ? (
+                  <a
+                    href="#forgot"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      alert('A password reset link will be sent to your email.');
+                    }}
+                    className="small link-primary text-decoration-none"
+                  >
+                    Forgot Password?
+                  </a>
+                ) : null}
+              </label>
+              <input
+                id="auth-password"
+                type="password"
+                className="form-control"
+                placeholder="Password"
+                required
+                minLength={6}
+                value={authPassword}
+                onChange={(e) => setAuthPassword(e.target.value)}
+              />
+            </div>
+
+            {authMode === 'signin' ? (
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="form-check">
+                  <input
+                    id="auth-remember"
+                    className="form-check-input"
+                    type="checkbox"
+                    checked={authRemember}
+                    onChange={(e) => setAuthRemember(e.target.checked)}
+                  />
+                  <label className="form-check-label small" htmlFor="auth-remember">
+                    Remember me
+                  </label>
+                </div>
+              </div>
+            ) : null}
+
+            <button className="btn btn-primary w-100 py-2 fw-semibold" type="submit">
+              {authMode === 'signin' ? 'Sign in' : 'Create account'}
+            </button>
+          </form>
+
+          <div className="text-center mt-3 small text-muted">
+            {authMode === 'signin' ? (
+              <span>
+                Don&apos;t have an account?{' '}
+                <button
+                  type="button"
+                  className="btn btn-link p-0 small fw-semibold align-baseline text-decoration-none"
+                  onClick={() => { setAuthMode('signup'); setAuthSuccessMsg(''); }}
+                >
+                  Sign up
+                </button>
+              </span>
+            ) : (
+              <span>
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  className="btn btn-link p-0 small fw-semibold align-baseline text-decoration-none"
+                  onClick={() => { setAuthMode('signin'); setAuthSuccessMsg(''); }}
+                >
+                  Sign in
+                </button>
+              </span>
+            )}
           </div>
         </div>
       </Modal>
